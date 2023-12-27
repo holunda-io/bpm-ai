@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "bpm-ai-core"
+version = "1.0.0"
+description = "Core AI abstractions and helpers."
+authors = ["Bennet Krause <bennet.krause@holisticon.de>"]
+repository = "https://github.com/holunda-io/bpm-ai"
+homepage = "https://www.holisticon.de/"
+license = "Apache-2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+openai = {version = "^1.6.0"}
+jinja2 = "^3.1.2"
+tenacity = "^8.2.3"
+langsmith = "^0.0.75"
+pydantic = "^2.5.2"
+pillow = "^10.1.0"
+requests = "^2.31.0"
+anthropic = "^0.8.0"
+
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.2"
+pytest-dotenv = "^0.5.2"
+
+[tool.poetry.group.dev.dependencies]
+setuptools = "^68.2.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
