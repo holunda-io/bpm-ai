@@ -10,7 +10,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-bpm-ai-core = { path = "../bpm-ai-core", develop = true }
+bpm-ai-core = "1.0.0"
 nltk = "^3.8.1"
 
 
