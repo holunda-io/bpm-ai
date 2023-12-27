@@ -53,26 +53,24 @@ trio = ["trio (>=0.23)"]
 
 [[package]]
 name = "bpm-ai-core"
-version = "0.1.3"
-description = ""
+version = "1.0.0"
+description = "Core AI abstractions and helpers."
 optional = false
-python-versions = "^3.11"
-files = []
-develop = true
+python-versions = ">=3.11,<4.0"
+files = [
+    {file = "bpm_ai_core-1.0.0-py3-none-any.whl", hash = "sha256:b34105c1021f30dcb0bd18541eb13835b34fe0f6f12d2c43db1dae85adc8555b"},
+    {file = "bpm_ai_core-1.0.0.tar.gz", hash = "sha256:03f281fb9c10c5679ef6daca6d097d20142ac39259f74342f55509c4649e9d0a"},
+]
 
 [package.dependencies]
-anthropic = "^0.8.0"
-jinja2 = "^3.1.2"
-langsmith = "^0.0.75"
-openai = "^1.6.0"
-pillow = "^10.1.0"
-pydantic = "^2.5.2"
-requests = "^2.31.0"
-tenacity = "^8.2.3"
-
-[package.source]
-type = "directory"
-url = "../bpm-ai-core"
+anthropic = ">=0.8.0,<0.9.0"
+jinja2 = ">=3.1.2,<4.0.0"
+langsmith = ">=0.0.75,<0.0.76"
+openai = ">=1.6.0,<2.0.0"
+pillow = ">=10.1.0,<11.0.0"
+pydantic = ">=2.5.2,<3.0.0"
+requests = ">=2.31.0,<3.0.0"
+tenacity = ">=8.2.3,<9.0.0"
 
 [[package]]
 name = "certifi"
@@ -1207,4 +1205,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "7278756d644ecf155cf4ac2e45449c24a479a6acca2c19a3a0acac53ead91c58"
+content-hash = "bd06b5ee5cb3c31a3a00156e1e2376e0a5ded487af1ebb988e42d23a9ab02259"
