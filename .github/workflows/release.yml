@@ -1,0 +1,22 @@
+name: Python package
+on:
+  push:
+    branches:
+      - master
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Publish python poetry package
+        uses: JRubics/poetry-publish@v1.17
+        with:
+          # The version of python to install
+          python_version: "3.11"
+          pypi_token: ${{ secrets.PYPI_TOKEN }}
+          # Install project without developer requirements.
+          ignore_dev_requirements: "yes"
+          package_directory: "bpm-ai-core"
+                
