@@ -20,8 +20,8 @@ jobs:
         with:
           poetry-version: "1.6.1"
       - name: Install bpm-ai-core dependencies
-        run: poetry install --directory=bpm-ai-core
+        run: poetry install --directory=bpm-ai-core --with=test
       - name: Install bpm-ai dependencies
-        run: poetry install --directory=bpm-ai
+        run: poetry install --directory=bpm-ai --with=test
       - name: Run pytest
         run: poetry pytest
