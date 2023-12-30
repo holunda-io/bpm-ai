@@ -19,7 +19,9 @@ jobs:
         uses: abatilo/actions-poetry@v2
         with:
           poetry-version: "1.6.1"
-      - name: Install project dependencies
-        run: poetry install
+      - name: Install bpm-ai-core dependencies
+        run: poetry install --directory=bpm-ai-core
+      - name: Install bpm-ai dependencies
+        run: poetry install --directory=bpm-ai
       - name: Run pytest
         run: poetry pytest
