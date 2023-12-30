@@ -24,4 +24,4 @@ jobs:
       - name: Install bpm-ai dependencies
         run: poetry install --directory=bpm-ai --with=test
       - name: Run pytest
-        run: poetry pytest
+        run: poetry run pytest
