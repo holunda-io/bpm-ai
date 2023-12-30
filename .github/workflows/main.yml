@@ -1,0 +1,23 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+      - develop
+
+jobs:
+  ci:
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - name: Set up poetry
+        uses: abatilo/actions-poetry@v2
+        with:
+          poetry-version: "1.6.1"
+      - name: Run pytest
+        run: poetry --help
