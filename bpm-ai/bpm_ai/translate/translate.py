@@ -22,7 +22,7 @@ def run_translate(
     )
 
     #input_data = prepare_images(input_data)  todo enable once GPT-4V is stable
-    input_data = prepare_audio(input_data)
+    #input_data = prepare_audio(input_data) todo enable when audio model selection available
 
     prompt = Prompt.from_file(
         "translate",

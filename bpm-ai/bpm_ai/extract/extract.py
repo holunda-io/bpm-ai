@@ -38,7 +38,7 @@ def run_extract(
     )
 
     #input_data = prepare_images(input_data)  todo enable once GPT-4V is stable
-    input_data = prepare_audio(input_data)
+    #input_data = prepare_audio(input_data) todo enable when audio model selection available
 
     input_md = json_to_md(input_data)
 

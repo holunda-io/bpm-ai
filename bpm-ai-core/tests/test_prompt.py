@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import PIL
 from PIL.Image import Image
 
@@ -7,7 +9,7 @@ from bpm_ai_core.llm.common.message import ChatMessage, ToolCallsMessage, ToolRe
 
 def test_prompt_format():
     template_vars = {
-        "image_url": "example.jpg",
+        "image_url": Path(__file__).parent.absolute() / "example.jpg",
         "task": "Do the task"
     }
     prompt = Prompt.from_file("test", **template_vars)
