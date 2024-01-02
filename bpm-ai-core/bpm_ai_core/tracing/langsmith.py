@@ -23,11 +23,11 @@ class LangsmithTracer(Tracer):
         self.context_run = None
 
     def start_llm_trace(
-        self,
-        llm: Any,
-        messages: List,
-        current_try: int,
-        tools: Optional[List] = None
+            self,
+            llm: Any,
+            messages: List,
+            current_try: int,
+            tools: Optional[List] = None
     ):
         from bpm_ai_core.util.openai import messages_to_openai_dicts, json_schema_to_openai_function
         inputs = {
@@ -36,15 +36,16 @@ class LangsmithTracer(Tracer):
             "temperature": llm.temperature,
             "current_try": current_try,
             "max_tries": llm.max_retries + 1,
-            "tools": [json_schema_to_openai_function(f.name, f.description, f.args_schema) for f in tools] if tools else None
+            "tools": [json_schema_to_openai_function(f.name, f.description, f.args_schema) for f in
+                      tools] if tools else None
         }
-        self.start_trace(
+        self._start_trace(
             name=llm.__class__.__name__,
             run_type="llm",
             inputs=inputs
         )
 
-    def end_llm_trace(self, completion = None, error_msg: Optional[str] = None):
+    def end_llm_trace(self, completion=None, error_msg: Optional[str] = None):
         from bpm_ai_core.llm.common.message import ToolCallsMessage
         choices = {
             "choices": [{
@@ -52,22 +53,23 @@ class LangsmithTracer(Tracer):
                     "role": "assistant",
                     "content": completion.content,
                     **({"tool_calls":
-                            [{"function": {"name": c.name, "arguments": c.payload_dict()}} for c in completion.tool_calls]
+                            [{"function": {"name": c.name, "arguments": c.payload_dict()}} for c in
+                             completion.tool_calls]
                         } if isinstance(completion, ToolCallsMessage) else {})
                 }
             }]
         } if completion else None
-        self.end_trace(
+        self._end_trace(
             outputs=choices,
             error=error_msg
         )
 
     def start_function_trace(
-        self,
-        function,
-        inputs: dict,
+            self,
+            function,
+            inputs: dict,
     ):
-        self.start_trace(
+        self._start_trace(
             name=function.name,
             run_type="tool",
             inputs=inputs,
@@ -75,25 +77,25 @@ class LangsmithTracer(Tracer):
         )
 
     def end_function_trace(
-        self,
-        output: Optional[dict],
-        error_msg: Optional[str] = None
+            self,
+            output: Optional[dict] = None,
+            error_msg: Optional[str] = None
     ):
-        self.end_trace(
+        self._end_trace(
             outputs=output,
             error=error_msg
         )
 
-    def start_trace(
-        self,
-        name: str,
-        run_type: str,
-        inputs: dict,
-        executor: Optional[futures.ThreadPoolExecutor] = None,
-        metadata: Optional[Mapping[str, Any]] = None,
-        tags: Optional[List[str]] = None,
-        client: Optional[client.Client] = None,
-        extra: Optional[Dict] = None
+    def _start_trace(
+            self,
+            name: str,
+            run_type: str,
+            inputs: dict,
+            executor: Optional[futures.ThreadPoolExecutor] = None,
+            metadata: Optional[Mapping[str, Any]] = None,
+            tags: Optional[List[str]] = None,
+            client: Optional[client.Client] = None,
+            extra: Optional[Dict] = None
     ):
         self.context_run = _PARENT_RUN_TREE.get()
         self.run_container = self._setup_run(
@@ -109,7 +111,7 @@ class LangsmithTracer(Tracer):
         _PROJECT_NAME.set(self.run_container["project_name"])
         _PARENT_RUN_TREE.set(self.run_container["new_run"])
 
-    def end_trace(self, outputs: Optional[Dict[str, Any]] = None, error: Optional[str] = None):
+    def _end_trace(self, outputs: Optional[Dict[str, Any]] = None, error: Optional[str] = None):
         if self.run_container is None:
             raise RuntimeError("Must call start_trace() before end_trace()")
 
@@ -134,15 +136,15 @@ class LangsmithTracer(Tracer):
 
     @staticmethod
     def _setup_run(
-        name: str,
-        run_type: str,
-        inputs: dict,
-        extra_outer: dict,
-        langsmith_extra: Optional[LangSmithExtra] = None,
-        executor: Optional[futures.ThreadPoolExecutor] = None,
-        metadata: Optional[Mapping[str, Any]] = None,
-        tags: Optional[List[str]] = None,
-        langsmith_client: Optional[client.Client] = None,
+            name: str,
+            run_type: str,
+            inputs: dict,
+            extra_outer: dict,
+            langsmith_extra: Optional[LangSmithExtra] = None,
+            executor: Optional[futures.ThreadPoolExecutor] = None,
+            metadata: Optional[Mapping[str, Any]] = None,
+            tags: Optional[List[str]] = None,
+            langsmith_client: Optional[client.Client] = None,
     ) -> _TraceableContainer:
         outer_project = _PROJECT_NAME.get() or os.environ.get(
             "LANGCHAIN_PROJECT", os.environ.get("LANGCHAIN_PROJECT", "default")

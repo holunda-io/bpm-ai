@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bpm-ai-core"
-version = "1.0.3"
+version = "1.0.4"
 description = "Core AI abstractions and helpers."
 authors = ["Bennet Krause <bennet.krause@holisticon.de>"]
 repository = "https://github.com/holunda-io/bpm-ai"
