@@ -13,7 +13,7 @@ def tool_response(name, payload):
     return ToolCallsMessage(tool_calls=[SingleToolCallMessage(id="fake", name=name, payload=payload)])
 
 
-class TestLLM(LLM):
+class FakeLLM(LLM):
     """Fake ChatModel for testing purposes."""
 
     def __init__(
