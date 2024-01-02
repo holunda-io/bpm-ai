@@ -1,11 +1,11 @@
 from bpm_ai_core.llm.openai_chat import ChatOpenAI
-from bpm_ai_core.testing.test_llm import TestLLM, tool_response
+from bpm_ai_core.testing.fake_llm import FakeLLM, tool_response
 
 from bpm_ai.decide.decide import run_decide
 
 
 def test_decide(use_real_llm=False):
-    llm = TestLLM(
+    llm = FakeLLM(
         name="openai",
         real_llm_delegate=ChatOpenAI() if use_real_llm else None,
         responses=[

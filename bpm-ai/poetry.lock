@@ -53,13 +53,13 @@ trio = ["trio (>=0.23)"]
 
 [[package]]
 name = "bpm-ai-core"
-version = "1.0.1"
+version = "1.0.4"
 description = "Core AI abstractions and helpers."
 optional = false
 python-versions = ">=3.11,<4.0"
 files = [
-    {file = "bpm_ai_core-1.0.1-py3-none-any.whl", hash = "sha256:da5e3177b66d096065956934d2e6e8aea7c40c9f9ddc351f8690c2bf64947371"},
-    {file = "bpm_ai_core-1.0.1.tar.gz", hash = "sha256:a8dcb318a4c287752b314fec2977fdbbbbb7b6b9e6cff6bff302d0cc47fae7c4"},
+    {file = "bpm_ai_core-1.0.4-py3-none-any.whl", hash = "sha256:142202e1080c9d80462ddb1cc5473c0a55fb9b1d2cab0480693eac388333145d"},
+    {file = "bpm_ai_core-1.0.4.tar.gz", hash = "sha256:43b7a7e0a9439d01ea01732177db0c526aa07c844b9502ca78bc2eea37c890a2"},
 ]
 
 [package.dependencies]
@@ -1223,4 +1223,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "a8051b17ff9cf5d22d6a9d64096e9ecdfe4ff6c1a3ccb3d782c19964706786a2"
+content-hash = "0f566f6cd9d2b615491f8118f72eda9f4200ccbb802265c1ca3b5c687f853ef4"
