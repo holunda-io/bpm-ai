@@ -6,7 +6,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 from bpm_ai_core.llm.common.message import ChatMessage
 from bpm_ai_core.llm.common.tool import Tool
 from bpm_ai_core.prompt.prompt import Prompt
-from bpm_ai_core.tracing.tracing import LangsmithTracer
+from bpm_ai_core.tracing.config import tracer
 
 
 class LLM(ABC):
@@ -18,8 +18,6 @@ class LLM(ABC):
     temperature: float = 0.0
     max_retries: int = 0
     retryable_exceptions: List[Type[BaseException]] = [Exception]
-
-    tracer = LangsmithTracer()
 
     @retry(
         wait=wait_exponential(multiplier=1.5, min=2, max=60),
@@ -37,9 +35,9 @@ class LLM(ABC):
 
         messages = prompt.format(llm_name=self.name())
 
-        self.tracer.start_llm_trace(self, messages, self.predict.retry.statistics['attempt_number'], tools)
+        tracer.start_llm_trace(self, messages, self.predict.retry.statistics['attempt_number'], tools)
         completion = self._predict(messages, output_schema, tools)
-        self.tracer.end_llm_trace(completion)
+        tracer.end_llm_trace(completion)
 
         return completion
 

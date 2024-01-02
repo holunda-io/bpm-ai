@@ -13,10 +13,6 @@ from langsmith import client, run_trees
 from langsmith.run_helpers import LangSmithExtra, _collect_extra, _TraceableContainer, _PROJECT_NAME, \
     _PARENT_RUN_TREE, _TAGS, _METADATA
 
-from bpm_ai_core.llm.common.message import ChatMessage, ToolCallsMessage
-from bpm_ai_core.llm.common.tool import Tool
-from bpm_ai_core.util.openai import messages_to_openai_dicts, json_schema_to_openai_function
-
 
 class LangsmithTracer:
 
@@ -27,10 +23,11 @@ class LangsmithTracer:
     def start_llm_trace(
         self,
         llm: Any,
-        messages: List[ChatMessage],
+        messages: List,
         current_try: int,
-        tools: Optional[List[Tool]] = None
+        tools: Optional[List] = None
     ):
+        from bpm_ai_core.util.openai import messages_to_openai_dicts, json_schema_to_openai_function
         inputs = {
             "messages": messages_to_openai_dicts(messages),
             "model": llm.model,
@@ -45,7 +42,8 @@ class LangsmithTracer:
             inputs=inputs
         )
 
-    def end_llm_trace(self, completion: Optional[ChatMessage] = None, error_msg: Optional[str] = None):
+    def end_llm_trace(self, completion = None, error_msg: Optional[str] = None):
+        from bpm_ai_core.llm.common.message import ToolCallsMessage
         choices = {
             "choices": [{
                 "message": {
@@ -64,7 +62,7 @@ class LangsmithTracer:
 
     def start_function_trace(
         self,
-        function: Tool,
+        function,
         inputs: dict,
     ):
         self.start_trace(

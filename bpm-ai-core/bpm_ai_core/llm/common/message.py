@@ -4,13 +4,14 @@ import json
 from typing import Optional, Literal, Any, Union, List
 
 from PIL import Image
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from bpm_ai_core.llm.common.tool import Tool
+from bpm_ai_core.tracing.config import tracer
 
 
 class ChatMessage(BaseModel):
-    content: Optional[Union[str, dict, List[Union[str, Image]]]] = None
+    content: Optional[Union[str, dict, List[Union[str, Image.Image]]]] = None
     """
     The contents of the message. 
     Either a string for normal completions, 
@@ -29,8 +30,7 @@ class ChatMessage(BaseModel):
     The name of the author of this message.
     """
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class SingleToolCallMessage(BaseModel):
@@ -65,8 +65,6 @@ class SingleToolCallMessage(BaseModel):
     async def ainvoke(self) -> Any:
         _callable = self.tool.callable
         inputs = self.payload_dict()
-        from bpm_ai_core.tracing.tracing import LangsmithTracer
-        tracer = LangsmithTracer()  # todo
         tracer.start_function_trace(self.tool, inputs)
         if inspect.iscoroutinefunction(_callable):
             result = await _callable(**inputs)
