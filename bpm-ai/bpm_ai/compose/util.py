@@ -3,7 +3,7 @@ import html
 import nltk
 from nltk.corpus import stopwords
 
-nltk.download('stopwords', download_dir="/tmp/nltk_data")
+nltk.download('stopwords')
 
 
 def remove_stop_words(sentence, separator=' ', max_n_result_words: int = 6):
