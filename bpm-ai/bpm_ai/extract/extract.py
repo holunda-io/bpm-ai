@@ -2,19 +2,21 @@ from bpm_ai_core.llm.common.llm import LLM
 from bpm_ai_core.llm.common.message import ToolCallsMessage
 from bpm_ai_core.llm.common.tool import Tool
 from bpm_ai_core.prompt.prompt import Prompt
-from langsmith import traceable
+from bpm_ai_core.speech.stt.stt import STTModel
+from bpm_ai_core.tracing.decorators import trace
 
 from bpm_ai.common.json_utils import json_to_md
 from bpm_ai.common.multimodal import prepare_audio
 
 
-@traceable(name="Extract")
+@trace("bpm-ai-extract")
 def run_extract(
     llm: LLM,
     input_data: dict[str, str | dict],
     output_schema: dict[str, str | dict],
     repeated: bool = False,
-    repeated_description: str = ""
+    repeated_description: str = "",
+    stt: STTModel | None = None
 ) -> dict:
     def transform_result(**extracted):
         def empty_to_none(v):
@@ -38,7 +40,7 @@ def run_extract(
     )
 
     #input_data = prepare_images(input_data)  todo enable once GPT-4V is stable
-    #input_data = prepare_audio(input_data) todo enable when audio model selection available
+    input_data = prepare_audio(input_data, stt)
 
     input_md = json_to_md(input_data)
 
