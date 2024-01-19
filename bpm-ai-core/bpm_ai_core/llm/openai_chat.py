@@ -1,13 +1,17 @@
 import json
 from typing import Dict, Any, Optional, List
 
-from openai import OpenAI, APIConnectionError, InternalServerError, RateLimitError
-from openai.types.chat import ChatCompletionMessage
-
 from bpm_ai_core.llm.common.llm import LLM
 from bpm_ai_core.llm.common.message import ChatMessage, ToolCallsMessage, SingleToolCallMessage
 from bpm_ai_core.llm.common.tool import Tool
 from bpm_ai_core.util.openai import messages_to_openai_dicts, json_schema_to_openai_function
+
+try:
+    from openai import OpenAI, APIConnectionError, InternalServerError, RateLimitError
+    from openai.types.chat import ChatCompletionMessage
+    has_openai = True
+except ImportError:
+    has_openai = False
 
 
 class ChatOpenAI(LLM):
@@ -23,16 +27,20 @@ class ChatOpenAI(LLM):
         model: str = "gpt-3.5-turbo-1106",
         temperature: float = 0.0,
         seed: Optional[int] = None,
-        max_retries: int = 0,
+        max_retries: int = 8,
         client_kwargs: Optional[Dict[str, Any]] = None
     ):
-        self.model = model
-        self.temperature = temperature
+        if not has_openai:
+            raise ImportError('openai is not installed')
+        super().__init__(
+            model=model,
+            temperature=temperature,
+            max_retries=max_retries,
+            retryable_exceptions=[
+                RateLimitError, InternalServerError, APIConnectionError
+            ]
+        )
         self.seed = seed
-        self.max_retries = max_retries
-        self.retryable_exceptions = [
-            RateLimitError, InternalServerError, APIConnectionError
-        ]
         self.client = OpenAI(
             max_retries=0,  # we use own retry logic
             **(client_kwargs or {})
@@ -50,7 +58,6 @@ class ChatOpenAI(LLM):
         if tools:
             openai_tools = [json_schema_to_openai_function(f.name, f.description, f.args_schema) for f in tools]
         completion = self._run_completion(messages, openai_tools)
-        print(completion)
 
         message = completion.choices[0].message
         if message.tool_calls:
@@ -75,7 +82,6 @@ class ChatOpenAI(LLM):
                    "tools": functions
                } if functions else {})
         }
-        print(args)
         return self.client.chat.completions.create(**args)
 
     @staticmethod

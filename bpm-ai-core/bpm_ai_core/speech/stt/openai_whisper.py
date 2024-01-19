@@ -1,15 +1,19 @@
 import io
 from typing import Optional, Dict, Any, Union
 
-from openai import OpenAI
-
-from bpm_ai_core.speech.common.speech import Speech
+from bpm_ai_core.speech.stt.stt import STTModel
 from bpm_ai_core.util.audio import load_audio
 
+try:
+    from openai import OpenAI
+    has_openai = True
+except ImportError:
+    has_openai = False
 
-class OpenAISpeech(Speech):
+
+class OpenAIWhisper(STTModel):
     """
-    `OpenAI` STT API.
+    `OpenAI` Whisper STT API for transcribing audio.
 
     To use, you should have the ``openai`` python package installed, and the
     environment variable ``OPENAI_API_KEY`` set with your API key.
@@ -20,6 +24,8 @@ class OpenAISpeech(Speech):
         whisper_model: str = "whisper-1",
         client_kwargs: Optional[Dict[str, Any]] = None
     ):
+        if not has_openai:
+            raise ImportError('openai is not installed')
         self.whisper_model = whisper_model
         self.client = OpenAI(
             **(client_kwargs or {})

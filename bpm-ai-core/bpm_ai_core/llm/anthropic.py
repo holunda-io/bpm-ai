@@ -1,30 +1,32 @@
 from typing import Dict, Any, Optional, List
 
-from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
-
 from bpm_ai_core.llm.common.llm import LLM
 from bpm_ai_core.llm.common.message import ChatMessage
 from bpm_ai_core.llm.common.tool import Tool
 
+try:
+    from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
+    has_anthropic = True
+except ImportError:
+    has_anthropic = False
+
 
 class AnthropicChat(LLM):
-    """
-
-    """
 
     def __init__(
         self,
         model: str = "claude-2.1",
         temperature: float = 0.0,
-        max_retries: int = 0,
+        max_retries: int = 8,
         client_kwargs: Optional[Dict[str, Any]] = None
     ):
-        self.model = model
-        self.temperature = temperature
-        self.max_retries = max_retries
-        self.retryable_exceptions = [
-
-        ]
+        if not has_anthropic:
+            raise ImportError('anthropic is not installed')
+        super().__init__(
+            model=model,
+            temperature=temperature,
+            max_retries=max_retries
+        )
         self.client = Anthropic(
             max_retries=0,  # we use own retry logic
             **(client_kwargs or {})

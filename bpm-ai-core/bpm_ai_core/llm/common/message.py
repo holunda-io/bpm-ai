@@ -7,7 +7,7 @@ from PIL import Image
 from pydantic import BaseModel, Field, ConfigDict
 
 from bpm_ai_core.llm.common.tool import Tool
-from bpm_ai_core.tracing.config import tracer
+from bpm_ai_core.tracing.tracing import Tracing
 
 
 class ChatMessage(BaseModel):
@@ -65,12 +65,12 @@ class SingleToolCallMessage(BaseModel):
     async def ainvoke(self) -> Any:
         _callable = self.tool.callable
         inputs = self.payload_dict()
-        tracer.start_function_trace(self.tool, inputs)
+        Tracing.tracers().start_tool_trace(self.tool, inputs)
         if inspect.iscoroutinefunction(_callable):
             result = await _callable(**inputs)
         else:
             result = _callable(**inputs)
-        tracer.end_function_trace(result)
+        Tracing.tracers().end_tool_trace(result)
         return result
 
 

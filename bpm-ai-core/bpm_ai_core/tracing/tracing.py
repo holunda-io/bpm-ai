@@ -1,33 +1,24 @@
-from abc import ABCMeta, abstractmethod
+import threading
+
+from bpm_ai_core.tracing.delegate import DelegateTracer
+from bpm_ai_core.tracing.logging import LoggingTracer
+from bpm_ai_core.tracing.tracer import Tracer
+
+_local = threading.local()
+_local.tracers: list[Tracer] = [LoggingTracer()]
 
 
-class Tracer(metaclass=ABCMeta):
-    @abstractmethod
-    def start_llm_trace(self, llm, messages, current_try, tools=None):
-        pass
+class Tracing:
+    @staticmethod
+    def add_tracer(tracer: Tracer):
+        if not isinstance(tracer, Tracer):
+            raise ValueError("tracer must be an instance of Tracer")
+        _local.tracers.append(tracer)
 
-    @abstractmethod
-    def end_llm_trace(self, completion=None, error_msg=None):
-        pass
+    @staticmethod
+    def tracers() -> Tracer:
+        return DelegateTracer(_local.tracers)
 
-    @abstractmethod
-    def start_function_trace(self, function, inputs):
-        pass
-
-    @abstractmethod
-    def end_function_trace(self, output=None, error_msg=None):
-        pass
-
-
-class NoopTracer(Tracer):
-    def start_llm_trace(self, llm, messages, current_try, tools=None):
-        pass
-
-    def end_llm_trace(self, completion=None, error_msg=None):
-        pass
-
-    def start_function_trace(self, function, inputs):
-        pass
-
-    def end_function_trace(self, output=None, error_msg=None):
-        pass
+    @staticmethod
+    def finalize():
+        Tracing.tracers().finalize()

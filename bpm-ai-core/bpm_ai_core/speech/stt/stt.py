@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, Union
 
 
-class Speech(ABC):
+class STTModel(ABC):
 
     @abstractmethod
     def transcribe(self, audio: Union[str, io.BytesIO], language: Optional[str] = None) -> str:

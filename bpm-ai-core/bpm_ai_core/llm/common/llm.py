@@ -1,12 +1,12 @@
 from abc import abstractmethod, ABC
-from typing import List, Any, Type
+from typing import Any, Type
 
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from tenacity import stop_after_attempt, wait_exponential, retry_if_exception_type, Retrying
 
 from bpm_ai_core.llm.common.message import ChatMessage
 from bpm_ai_core.llm.common.tool import Tool
 from bpm_ai_core.prompt.prompt import Prompt
-from bpm_ai_core.tracing.config import tracer
+from bpm_ai_core.tracing.tracing import Tracing
 
 
 class LLM(ABC):
@@ -14,16 +14,18 @@ class LLM(ABC):
     Abstract class for large language models.
     """
 
-    model: str
-    temperature: float = 0.0
-    max_retries: int = 0
-    retryable_exceptions: List[Type[BaseException]] = [Exception]
+    def __init__(
+        self,
+        model: str,
+        temperature: float = 0.0,
+        max_retries: int = 8,
+        retryable_exceptions: list[Type[BaseException]] = None
+    ):
+        self.model = model
+        self.temperature = temperature
+        self.max_retries = max_retries
+        self.retryable_exceptions = retryable_exceptions or [Exception]
 
-    @retry(
-        wait=wait_exponential(multiplier=1.5, min=2, max=60),
-        stop=stop_after_attempt(max_retries),
-        retry=retry_if_exception_type(*retryable_exceptions)
-    )
     def predict(
         self,
         prompt: Prompt,
@@ -35,9 +37,17 @@ class LLM(ABC):
 
         messages = prompt.format(llm_name=self.name())
 
-        tracer.start_llm_trace(self, messages, self.predict.retry.statistics['attempt_number'], tools)
-        completion = self._predict(messages, output_schema, tools)
-        tracer.end_llm_trace(completion)
+        print(self.retryable_exceptions)
+
+        for attempt in Retrying(
+            wait=wait_exponential(multiplier=1.5, min=2, max=60),
+            stop=stop_after_attempt(self.max_retries),
+            retry=retry_if_exception_type(tuple(self.retryable_exceptions))
+        ):
+            with attempt:
+                Tracing.tracers().start_llm_trace(self, messages, attempt.retry_state.attempt_number, tools)
+                completion = self._predict(messages, output_schema, tools)
+                Tracing.tracers().end_llm_trace(completion)
 
         return completion
 
