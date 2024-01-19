@@ -14,7 +14,7 @@ def tool_response(name, payload):
 
 
 class FakeLLM(LLM):
-    """Fake ChatModel for testing purposes."""
+    """Fake LLM for testing purposes."""
 
     def __init__(
         self,
@@ -23,8 +23,8 @@ class FakeLLM(LLM):
         real_llm_delegate: LLM | None = None,
         name: str = "test-llm"
     ):
+        super().__init__("test-model")
         self._name = name
-        self.model = "test-model"
 
         self.responses = responses or []
         self.tools = tools or []
