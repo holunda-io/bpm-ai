@@ -45,7 +45,6 @@ def create_schema_from_function(
     """
     validated = validate_call(func, config=_SchemaConfig)  # type: ignore
     inferred_model = validated.__pydantic_core_schema__
-    print(inferred_model)
     # Pydantic adds placeholder virtual fields we need to strip
     valid_properties = _get_filtered_args(inferred_model, func)
     return _create_subset_model(

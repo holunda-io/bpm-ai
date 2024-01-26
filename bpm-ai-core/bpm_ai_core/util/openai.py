@@ -1,10 +1,12 @@
+import logging
 from typing import List, Dict, Any
 
 from PIL.Image import Image
-from openai.types.chat import ChatCompletionMessageParam
 
 from bpm_ai_core.llm.common.message import ChatMessage, ToolCallsMessage, ToolResultMessage
 from bpm_ai_core.util.image import base64_encode_image
+
+logger = logging.getLogger(__name__)
 
 
 def get_openai_tool_call_dict(message: ToolCallsMessage):
@@ -23,7 +25,7 @@ def get_openai_tool_call_dict(message: ToolCallsMessage):
     }
 
 
-def message_to_openai_dict(message: ChatMessage) -> ChatCompletionMessageParam:
+def message_to_openai_dict(message: ChatMessage) -> dict:
     if isinstance(message, ToolCallsMessage):
         extra_dict = {
             **get_openai_tool_call_dict(message)
@@ -50,7 +52,7 @@ def message_to_openai_dict(message: ChatMessage) -> ChatCompletionMessageParam:
                 )
     else:
         content = None
-        print(
+        logger.warning(
             "ChatMessage.content must be of type str or List[Union[str, PIL.Image]] if used for chat completions."
         )
     return {

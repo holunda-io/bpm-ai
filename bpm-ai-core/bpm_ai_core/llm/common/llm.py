@@ -37,8 +37,6 @@ class LLM(ABC):
 
         messages = prompt.format(llm_name=self.name())
 
-        print(self.retryable_exceptions)
-
         for attempt in Retrying(
             wait=wait_exponential(multiplier=1.5, min=2, max=60),
             stop=stop_after_attempt(self.max_retries),

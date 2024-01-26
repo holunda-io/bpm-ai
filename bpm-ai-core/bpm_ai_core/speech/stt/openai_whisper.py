@@ -39,5 +39,4 @@ class OpenAIWhisper(STTModel):
             file=audio,
             **{"language": language} if language else {}
         )
-        print(transcript)
         return transcript.text

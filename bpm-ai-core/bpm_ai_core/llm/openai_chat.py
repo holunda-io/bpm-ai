@@ -105,7 +105,6 @@ class ChatOpenAI(LLM):
         try:
             json_object = json.loads(message.tool_calls[0].function.arguments)
         except ValueError as e:
-            print(e)
             json_object = None
         return json_object
 

@@ -48,7 +48,6 @@ class AnthropicChat(LLM):
 
     def _run_completion(self, messages: List[ChatMessage], functions: List[dict]):
         prompt = AnthropicChat.messages_to_claude_str(messages)
-        print(prompt)
         return self.client.completions.create(
             max_tokens_to_sample=4096,
             model=self.model,
