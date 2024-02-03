@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bpm-ai"
-version = "1.0.3"
+version = "1.0.4"
 description = "AI task automation for BPM engines."
 authors = ["Bennet Krause <bennet.krause@holisticon.de>"]
 repository = "https://github.com/holunda-io/bpm-ai"
@@ -10,10 +10,9 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-nltk = "^3.8.1"
 bpm-ai-core = "1.0.7"
-openai = {version = "^1.10.0"}
-langfuse = "^2.6.3"
+openai = "^1.11.0"
+langfuse = "^2.7.6"
 
 
 [tool.poetry.group.dev.dependencies]
