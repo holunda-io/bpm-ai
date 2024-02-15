@@ -23,6 +23,6 @@ jobs:
         with:
           poetry-version: "1.6.1"
       - name: Install dependencies
-        run: poetry install
+        run: poetry install --all-extras
       - name: Run pytest
         run: poetry run pytest
