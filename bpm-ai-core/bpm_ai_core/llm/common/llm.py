@@ -26,7 +26,7 @@ class LLM(ABC):
         self.max_retries = max_retries
         self.retryable_exceptions = retryable_exceptions or [Exception]
 
-    def predict(
+    async def predict(
         self,
         prompt: Prompt,
         output_schema: dict[str, Any] | None = None,
@@ -44,13 +44,13 @@ class LLM(ABC):
         ):
             with attempt:
                 Tracing.tracers().start_llm_trace(self, messages, attempt.retry_state.attempt_number, tools)
-                completion = self._predict(messages, output_schema, tools)
+                completion = await self._predict(messages, output_schema, tools)
                 Tracing.tracers().end_llm_trace(completion)
 
         return completion
 
     @abstractmethod
-    def _predict(
+    async def _predict(
         self,
         messages: list[ChatMessage],
         output_schema: dict[str, Any] | None = None,

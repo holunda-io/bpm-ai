@@ -1,23 +1,30 @@
-import threading
+import os
+from contextvars import ContextVar
 
 from bpm_ai_core.tracing.delegate import DelegateTracer
-from bpm_ai_core.tracing.logging import LoggingTracer
+
 from bpm_ai_core.tracing.tracer import Tracer
 
-_local = threading.local()
-_local.tracers: list[Tracer] = [LoggingTracer()]
+_tracers: ContextVar[list[Tracer] | None] = ContextVar('tracers', default=None)
+
+
+def _configure_tracers():
+    tracers = []
+    if not os.environ.get("BPM_AI_CONSOLE_TRACING_DISABLED", False):
+        from bpm_ai_core.tracing.logging import LoggingTracer
+        tracers.append(LoggingTracer())
+    if os.environ.get("LANGFUSE_SECRET_KEY"):
+        from bpm_ai_core.tracing.langfuse import LangfuseTracer
+        tracers.append(LangfuseTracer())
+    _tracers.set(tracers)
 
 
 class Tracing:
     @staticmethod
-    def add_tracer(tracer: Tracer):
-        if not isinstance(tracer, Tracer):
-            raise ValueError("tracer must be an instance of Tracer")
-        _local.tracers.append(tracer)
-
-    @staticmethod
     def tracers() -> Tracer:
-        return DelegateTracer(_local.tracers)
+        if _tracers.get() is None:
+            _configure_tracers()
+        return DelegateTracer(_tracers.get())
 
     @staticmethod
     def finalize():

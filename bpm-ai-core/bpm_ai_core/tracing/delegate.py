@@ -5,9 +5,9 @@ class DelegateTracer(Tracer):
     def __init__(self, tracers: list[Tracer]):
         self.tracers = tracers
 
-    def start_trace(self, name, inputs):
+    def start_trace(self, name, inputs, tags=None):
         for tracer in self.tracers:
-            tracer.start_trace(name, inputs)
+            tracer.start_trace(name, inputs, tags)
 
     def end_trace(self, outputs, error_msg=None):
         for tracer in self.tracers:

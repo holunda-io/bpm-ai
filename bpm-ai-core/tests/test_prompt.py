@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import PIL
 from PIL.Image import Image
 
 from bpm_ai_core.prompt.prompt import Prompt

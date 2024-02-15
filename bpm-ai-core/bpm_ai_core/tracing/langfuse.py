@@ -32,15 +32,16 @@ class LangfuseTracer(Tracer):
         self.generation: StatefulGenerationClient | None = None
         self.current_tool = None
 
-    def start_trace(self, name, inputs):
+    def start_trace(self, name: str, inputs: dict, tags: list[str] = None):
         if self.trace:
             raise Exception("Trace already started for this thread - end it first")
         self.trace = self.langfuse.trace(
             name=name,
-            input=inputs
+            input=inputs,
+            tags=tags
         )
 
-    def end_trace(self, outputs, error_msg: str = None):
+    def end_trace(self, outputs: dict, error_msg: str = None):
         if not self.trace:
             raise Exception("No trace started for this thread")
         self.trace.update(
@@ -48,11 +49,11 @@ class LangfuseTracer(Tracer):
             level="ERROR" if error_msg else None,
             status_message=error_msg
         )
-        logger.info(f"[> Trace ended] {self.trace.get_trace_url()}")
+        logger.info(f"[Langfuse Trace Finished] {self.trace.get_trace_url()}")
         self.trace = None
         self.span_stack = []
 
-    def start_span(self, name, inputs=None):
+    def start_span(self, name: str, inputs: dict = None):
         if not self.trace:
             raise Exception("No trace started for this thread")
         if self.span_stack:

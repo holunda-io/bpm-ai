@@ -7,9 +7,21 @@ from bpm_ai_core.llm.common.tool import Tool
 from bpm_ai_core.util.openai import messages_to_openai_dicts, json_schema_to_openai_function
 
 try:
-    from openai import OpenAI, APIConnectionError, InternalServerError, RateLimitError
-    from openai.types.chat import ChatCompletionMessage
+    from openai import AsyncOpenAI, APIConnectionError, InternalServerError, RateLimitError
+    from openai.types.chat import ChatCompletionMessage, ChatCompletion
+    import httpx
+
     has_openai = True
+
+    client = AsyncOpenAI(
+        http_client=httpx.AsyncClient(
+            limits=httpx.Limits(
+                max_connections=1000,
+                max_keepalive_connections=100
+            )
+        ),
+        max_retries=0  # we use own retry logic
+    )
 except ImportError:
     has_openai = False
 
@@ -24,11 +36,10 @@ class ChatOpenAI(LLM):
 
     def __init__(
         self,
-        model: str = "gpt-3.5-turbo-1106",
+        model: str = "gpt-3.5-turbo-0125",
         temperature: float = 0.0,
         seed: Optional[int] = None,
-        max_retries: int = 8,
-        client_kwargs: Optional[Dict[str, Any]] = None
+        max_retries: int = 8
     ):
         if not has_openai:
             raise ImportError('openai is not installed')
@@ -41,12 +52,8 @@ class ChatOpenAI(LLM):
             ]
         )
         self.seed = seed
-        self.client = OpenAI(
-            max_retries=0,  # we use own retry logic
-            **(client_kwargs or {})
-        )
 
-    def _predict(
+    async def _predict(
         self,
         messages: List[ChatMessage],
         output_schema: Optional[Dict[str, Any]] = None,
@@ -57,7 +64,7 @@ class ChatOpenAI(LLM):
             tools = [Tool.from_callable(name="store_result", description="Stores your result", args_schema=output_schema)]
         if tools:
             openai_tools = [json_schema_to_openai_function(f.name, f.description, f.args_schema) for f in tools]
-        completion = self._run_completion(messages, openai_tools)
+        completion = await self._run_completion(messages, openai_tools)
 
         message = completion.choices[0].message
         if message.tool_calls:
@@ -68,7 +75,7 @@ class ChatOpenAI(LLM):
         else:
             return ChatMessage(role=message.role, content=message.content)
 
-    def _run_completion(self, messages: List[ChatMessage], functions: List[dict]):
+    async def _run_completion(self, messages: List[ChatMessage], functions: List[dict]) -> ChatCompletion:
         args = {
             "model": self.model,
             "temperature": self.temperature,
@@ -82,7 +89,7 @@ class ChatOpenAI(LLM):
                    "tools": functions
                } if functions else {})
         }
-        return self.client.chat.completions.create(**args)
+        return await client.chat.completions.create(**args)
 
     @staticmethod
     def _openai_tool_calls_to_tool_message(message: ChatCompletionMessage, tools: List[Tool]) -> ToolCallsMessage:

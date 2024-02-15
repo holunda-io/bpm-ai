@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod
 
 class Tracer(metaclass=ABCMeta):
     @abstractmethod
-    def start_trace(self, name: str, inputs: dict):
+    def start_trace(self, name: str, inputs: dict, tags: list[str] = None):
         pass
 
     @abstractmethod

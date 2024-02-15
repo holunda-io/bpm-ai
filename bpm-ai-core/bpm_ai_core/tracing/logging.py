@@ -14,8 +14,8 @@ class LoggingTracer(Tracer):
     def _indent(self):
         return ("|--" if self._level == 0 else "|") + ("  " * self._level) + ("|--" if self._level > 0 else "")
 
-    def start_trace(self, name, inputs):
-        logger.info(f"[TRACE START] {name}, inputs={inputs}")
+    def start_trace(self, name: str, inputs: dict, tags: list[str] = None):
+        logger.info(f"[TRACE START] {name},{f'{tags}, ' if tags else ''} inputs={inputs}")
 
     def end_trace(self, outputs, error_msg: str = None):
         if error_msg:
