@@ -1,5 +1,6 @@
 import io
 from typing import Optional, Dict, Any, Union
+import logging
 
 from bpm_ai_core.speech_recognition.asr import ASRModel
 from bpm_ai_core.util.audio import load_audio

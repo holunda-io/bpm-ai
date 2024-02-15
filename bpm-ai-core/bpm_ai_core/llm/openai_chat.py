@@ -1,5 +1,6 @@
 import json
 from typing import Dict, Any, Optional, List
+import logging
 
 from bpm_ai_core.llm.common.llm import LLM
 from bpm_ai_core.llm.common.message import ChatMessage, ToolCallsMessage, SingleToolCallMessage
