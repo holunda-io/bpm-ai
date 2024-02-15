@@ -11,7 +11,7 @@ jobs:
   pytest:
     defaults:
       run:
-        working-directory: ./bpm-ai-core
+        working-directory: ./bpm-ai-core/tests
     strategy:
       fail-fast: false
     runs-on: ubuntu-latest
