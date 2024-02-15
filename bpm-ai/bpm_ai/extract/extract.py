@@ -1,8 +1,6 @@
 import re
-import string
 from typing import Callable, Any
 
-from bpm_ai_core.speech_recognition.asr import ASRModel
 from bpm_ai_core.classification.transformers_classifier import TransformersClassifier, DEFAULT_MODEL_MULTI, \
     DEFAULT_MODEL_EN
 from bpm_ai_core.extractive_qa.question_answering import ExtractiveQA
@@ -11,6 +9,7 @@ from bpm_ai_core.llm.common.message import ToolCallsMessage
 from bpm_ai_core.llm.common.tool import Tool
 from bpm_ai_core.pos.spacy_pos_tagger import SpacyPOSTagger
 from bpm_ai_core.prompt.prompt import Prompt
+from bpm_ai_core.speech_recognition.asr import ASRModel
 from bpm_ai_core.tracing.decorators import trace
 from bpm_ai_core.util.json import expand_simplified_json_schema
 from bpm_ai_core.util.language import indentify_language
@@ -106,6 +105,14 @@ def filter_and_join(tags, tags_to_join=['NOUN', 'PROPN', 'NUM', 'SYM', 'X']):
     return result
 
 
+def strip_non_numeric_chars(s):
+    while len(s) > 0 and not s[0].isdigit():
+        s = s[1:]
+    while len(s) > 0 and not s[-1].isdigit():
+        s = s[:-1]
+    return s
+
+
 @trace("bpm-ai-extract", ["extractive-qa"])
 async def extract_qa(
     extractive_qa: ExtractiveQA,
@@ -137,17 +144,13 @@ async def extract_qa(
             return None
 
         if field_type == "integer":
-            potential_bad_characters = string.punctuation + string.ascii_letters + string.whitespace
-            answer = answer.strip(potential_bad_characters)
             try:
-                return int(answer)
+                return int(strip_non_numeric_chars(answer))
             except ValueError:
                 return None
         elif field_type == "float":
-            potential_bad_characters = string.punctuation + string.ascii_letters + string.whitespace + "€äöüß"  # todo not robust for non-english
-            answer = answer.strip(potential_bad_characters)
             try:
-                return float(answer)
+                return float(strip_non_numeric_chars(answer))
             except ValueError:
                 return None
         else:
