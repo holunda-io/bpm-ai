@@ -33,7 +33,7 @@ class FakeLLM(LLM):
 
         self.real_llm_delegate = real_llm_delegate
 
-    def _predict(
+    async def _predict(
         self, messages: list[ChatMessage],
         output_schema: dict[str, Any] | None = None,
         tools: list[Tool] | None = None
