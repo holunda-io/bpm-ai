@@ -6,22 +6,23 @@ from bpm_ai_core.llm.common.message import ChatMessage, ToolCallsMessage, Single
 from bpm_ai_core.llm.common.tool import Tool
 from bpm_ai_core.util.openai import messages_to_openai_dicts, json_schema_to_openai_function
 
+logger = logging.getLogger(__name__)
+
 try:
-    from openai import AsyncOpenAI, APIConnectionError, InternalServerError, RateLimitError
+    from openai import AsyncOpenAI, APIConnectionError, InternalServerError, RateLimitError, OpenAIError
     from openai.types.chat import ChatCompletionMessage, ChatCompletion
     import httpx
 
     has_openai = True
-
-    client = AsyncOpenAI(
-        http_client=httpx.AsyncClient(
-            limits=httpx.Limits(
-                max_connections=1000,
-                max_keepalive_connections=100
-            )
-        ),
-        max_retries=0  # we use own retry logic
-    )
+    try:
+        client = AsyncOpenAI(
+            http_client=httpx.AsyncClient(
+                limits=httpx.Limits(max_connections=1000, max_keepalive_connections=100)
+            ),
+            max_retries=0  # we use own retry logic
+        )
+    except OpenAIError as e:
+        logger.error(e)
 except ImportError:
     has_openai = False
 

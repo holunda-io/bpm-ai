@@ -4,20 +4,21 @@ from typing import Optional, Dict, Any, Union
 from bpm_ai_core.speech_recognition.asr import ASRModel
 from bpm_ai_core.util.audio import load_audio
 
+logger = logging.getLogger(__name__)
+
 try:
     from openai import AsyncOpenAI
     import httpx
 
     has_openai = True
-
-    client = AsyncOpenAI(
-        http_client=httpx.AsyncClient(
-            limits=httpx.Limits(
-                max_connections=1000,
-                max_keepalive_connections=100
-            )
+    try:
+        client = AsyncOpenAI(
+            http_client=httpx.AsyncClient(
+                limits=httpx.Limits(max_connections=1000, max_keepalive_connections=100)
+            ),
         )
-    )
+    except OpenAIError as e:
+        logger.error(e)
 except ImportError:
     has_openai = False
 
