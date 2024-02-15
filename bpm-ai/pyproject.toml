@@ -10,7 +10,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-bpm-ai-core = "1.1.2"
+bpm-ai-core = "1.1.4"
 openai = "^1.11.0"
 langfuse = "^2.13.3"
 
