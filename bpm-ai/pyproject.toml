@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bpm-ai"
-version = "1.1.0"
+version = "1.1.1"
 description = "AI task automation for BPM engines."
 authors = ["Bennet Krause <bennet.krause@holisticon.de>"]
 repository = "https://github.com/holunda-io/bpm-ai"
@@ -18,26 +18,13 @@ langfuse = "^2.13.3"
 faster-whisper = { version = "^0.10.0", optional = true }
 lingua-language-detector = { version = "^2.0.2", optional = true }
 langcodes = { version = "^3.3.0", extras = ["data"], optional = true}
-torch = { version = "=2.2.0+cpu", source = "torch-cpu", optional = true }
 sentencepiece = { version = "^0.1.99", optional = true }
 nltk = { version = "^3.8.1", optional = true }
 transformers = { version = "^4.37.2", optional = true }
 sacremoses = { version = "^0.1.1", optional = true }
-spacy = { version = "=3.7.2", optional = true }
 
 [tool.poetry.extras]
 inference = [
-    "faster-whisper",
-    "lingua-language-detector",
-    "langcodes",
-    "torch",
-    "transformers",
-    "sacremoses",
-    "sentencepiece",
-    "nltk",
-    "spacy"
-]
-inference-apple = [
     "faster-whisper",
     "lingua-language-detector",
     "langcodes",
@@ -50,6 +37,15 @@ inference-apple = [
 
 [tool.poetry.group.dev.dependencies]
 setuptools = "^68.2.2"
+torch = [
+    { version = "=2.2.0", source="pypi", platform = "darwin" },
+    { version = "=2.2.0+cpu", source = "torch-cpu", platform = "linux" },
+    { version = "=2.2.0+cpu", source = "torch-cpu", platform = "win32" },
+]
+spacy = [
+    { version = "=3.7.2", markers = "sys_platform != 'darwin'" },
+    { version = "=3.7.2", extras = ["apple"], markers = "sys_platform == 'darwin' and platform_machine == 'arm64'" },
+]
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.2"
