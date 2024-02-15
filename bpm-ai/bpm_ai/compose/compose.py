@@ -1,11 +1,11 @@
 import re
 from typing import TypedDict, Callable
 
+from bpm_ai_core.speech_recognition.asr import ASRModel
 from bpm_ai_core.llm.common.llm import LLM
 from bpm_ai_core.llm.common.message import ToolCallsMessage
 from bpm_ai_core.llm.common.tool import Tool
 from bpm_ai_core.prompt.prompt import Prompt
-from bpm_ai_core.speech.stt.stt import STTModel
 from bpm_ai_core.tracing.decorators import trace
 
 from bpm_ai.common.json_utils import json_to_md
@@ -24,13 +24,13 @@ class TextProperties(TypedDict):
     temperature: str
 
 
-@trace("bpm-ai-compose")
-def run_compose(
+@trace("bpm-ai-compose", ["llm"])
+async def compose_llm(
     llm: LLM,
     input_data: dict[str, str | dict],
     template: str,
     properties: TextProperties,
-    stt: STTModel | None = None
+    asr: ASRModel | None = None
 ) -> dict:
     def desc_to_var_name(desc: str):
         v = remove_stop_words(desc, separator='_')
@@ -40,7 +40,7 @@ def run_compose(
         return re.sub(TEMPLATE_VAR_PATTERN, lambda m: f(m.group(1)), template)
 
     #input_data = prepare_images(input_data)  todo enable once GPT-4V is stable
-    input_data = prepare_audio(input_data, stt)
+    input_data = prepare_audio(input_data, asr)
 
     # all variables found in the template
     template_vars = re.findall(TEMPLATE_VAR_PATTERN, template)
@@ -71,7 +71,7 @@ def run_compose(
             lang=properties.get("language", "English")
         )
 
-        result = llm.predict(prompt, tools=[tool])
+        result = await llm.predict(prompt, tools=[tool])
 
         if isinstance(result, ToolCallsMessage):
             generated_vars = result.tool_calls[0].invoke()

@@ -1,10 +1,10 @@
 from bpm_ai_core.llm.openai_chat import ChatOpenAI
 from bpm_ai_core.testing.fake_llm import FakeLLM, tool_response
 
-from bpm_ai.compose.compose import run_compose
+from bpm_ai.compose.compose import compose_llm
 
 
-def test_compose(use_real_llm=False):
+async def test_compose(use_real_llm=False):
     llm = FakeLLM(
         name="openai",
         real_llm_delegate=ChatOpenAI() if use_real_llm else None,
@@ -19,7 +19,7 @@ def test_compose(use_real_llm=False):
             )
         ]
     )
-    result = run_compose(
+    result = await compose_llm(
         llm=llm,
         input_data={
             "email": "Hey, where is my order? Max",

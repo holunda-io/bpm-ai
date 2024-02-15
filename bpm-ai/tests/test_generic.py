@@ -1,10 +1,10 @@
 from bpm_ai_core.llm.openai_chat import ChatOpenAI
 from bpm_ai_core.testing.fake_llm import FakeLLM, tool_response
 
-from bpm_ai.generic.generic import run_generic
+from bpm_ai.generic.generic import generic_llm
 
 
-def test_generic(use_real_llm=False):
+async def test_generic(use_real_llm=False):
     llm = FakeLLM(
         name="openai",
         real_llm_delegate=ChatOpenAI() if use_real_llm else None,
@@ -15,7 +15,7 @@ def test_generic(use_real_llm=False):
             )
         ]
     )
-    result = run_generic(
+    result = await generic_llm(
         llm=llm,
         input_data={"email": "Hey ich bins, der John Meier."},
         instructions="Extract the information",

@@ -1,21 +1,21 @@
+from bpm_ai_core.speech_recognition.asr import ASRModel
 from bpm_ai_core.llm.common.llm import LLM
 from bpm_ai_core.llm.common.message import ToolCallsMessage
 from bpm_ai_core.llm.common.tool import Tool
 from bpm_ai_core.prompt.prompt import Prompt
-from bpm_ai_core.speech.stt.stt import STTModel
 from bpm_ai_core.tracing.decorators import trace
 
 from bpm_ai.common.json_utils import json_to_md
 from bpm_ai.common.multimodal import prepare_audio
 
 
-@trace("bpm-ai-generic")
-def run_generic(
+@trace("bpm-ai-generic", ["llm"])
+async def generic_llm(
     llm: LLM,
     input_data: dict[str, str | dict],
     instructions: str,
     output_schema: dict[str, str | dict],
-    stt: STTModel | None = None
+    asr: ASRModel | None = None
 ) -> dict:
     tool = Tool.from_callable(
         "store_task_result",
@@ -25,9 +25,9 @@ def run_generic(
     )
 
     #input_data = prepare_images(input_data)  todo enable once GPT-4V is stable
-    input_data = prepare_audio(input_data, stt)
+    input_data = prepare_audio(input_data, asr)
 
-    input_md = json_to_md(input_data)
+    input_md = json_to_md(input_data).strip()
 
     prompt = Prompt.from_file(
         "generic",
@@ -35,7 +35,7 @@ def run_generic(
         task=instructions,
     )
 
-    result = llm.predict(prompt, tools=[tool])
+    result = await llm.predict(prompt, tools=[tool])
 
     if isinstance(result, ToolCallsMessage):
         return result.tool_calls[0].invoke()

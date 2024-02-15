@@ -10,9 +10,42 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-bpm-ai-core = "1.0.7"
+bpm-ai-core = "1.1.1"
 openai = "^1.11.0"
-langfuse = "^2.7.6"
+langfuse = "^2.13.3"
+
+# optional - for local inference (`pip install bpm-ai[inference]`)
+faster-whisper = { version = "^0.10.0", optional = true }
+lingua-language-detector = { version = "^2.0.2", optional = true }
+langcodes = { version = "^3.3.0", extras = ["data"], optional = true}
+torch = { version = "=2.2.0+cpu", source = "torch-cpu", optional = true }
+sentencepiece = { version = "^0.1.99", optional = true }
+nltk = { version = "^3.8.1", optional = true }
+transformers = { version = "^4.37.2", optional = true }
+sacremoses = { version = "^0.1.1", optional = true }
+spacy = { version = "=3.7.2", optional = true }
+
+[tool.poetry.extras]
+inference = [
+    "faster-whisper",
+    "lingua-language-detector",
+    "langcodes",
+    "torch",
+    "transformers",
+    "sacremoses",
+    "sentencepiece",
+    "nltk",
+    "spacy"
+]
+inference-apple = [
+    "faster-whisper",
+    "lingua-language-detector",
+    "langcodes",
+    "transformers",
+    "sacremoses",
+    "sentencepiece",
+    "nltk",
+]
 
 
 [tool.poetry.group.dev.dependencies]
@@ -20,7 +53,14 @@ setuptools = "^68.2.2"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.2"
+pytest-asyncio = "^0.23.5"
 pytest-dotenv = "^0.5.2"
+
+[[tool.poetry.source]]
+name = "torch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"
+
 
 [build-system]
 requires = ["poetry-core"]
