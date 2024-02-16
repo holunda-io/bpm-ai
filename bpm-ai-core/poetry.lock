@@ -690,13 +690,13 @@ data = ["language-data (>=1.1,<2.0)"]
 
 [[package]]
 name = "langfuse"
-version = "2.13.3"
+version = "2.13.4"
 description = "A client library for accessing langfuse"
 optional = false
 python-versions = ">=3.8.1,<4.0"
 files = [
-    {file = "langfuse-2.13.3-py3-none-any.whl", hash = "sha256:7bdcf02a74366ef77d5258c2aaae07d11fabde9a90c883f9022ecaf244bfdeca"},
-    {file = "langfuse-2.13.3.tar.gz", hash = "sha256:2be049382e867681eabf774d60aadad3e6c277841e2c7f06d71190379650c2d9"},
+    {file = "langfuse-2.13.4-py3-none-any.whl", hash = "sha256:426527e3d1098768f6d6c3eed2c2df746073792337c26ca8a9f376d9809835f8"},
+    {file = "langfuse-2.13.4.tar.gz", hash = "sha256:959e554e8da5224d21972f3ebdb238058dc9d7eb93a7b94b2569277b8750ad6b"},
 ]
 
 [package.dependencies]
