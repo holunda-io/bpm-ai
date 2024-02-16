@@ -25,7 +25,7 @@ async def translate_llm(
     )
 
     #input_data = prepare_images(input_data)  todo enable once GPT-4V is stable
-    input_data = prepare_audio(input_data, asr)
+    input_data = await prepare_audio(input_data, asr)
 
     prompt = Prompt.from_file(
         "translate",
@@ -49,7 +49,7 @@ async def translate_nmt(
     asr: ASRModel | None = None
 ) -> dict:
     #input_data = prepare_images(input_data)  todo
-    input_data = prepare_audio(input_data, asr)
+    input_data = await prepare_audio(input_data, asr)
 
     try:
         import langcodes
@@ -59,7 +59,7 @@ async def translate_nmt(
     except LookupError:
         raise Exception(f"Could not identify target language '{target_language}'.")
 
-    texts_to_translate = list(input_data.values())
+    texts_to_translate = list(input_data.values())  # todo handle None values
     translated_texts = nmt.translate(texts_to_translate, target_language_code)
 
     return {k: translated_texts[i] for i, k in enumerate(input_data.keys())}

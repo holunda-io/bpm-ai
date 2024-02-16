@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bpm-ai"
-version = "1.1.1"
+version = "1.1.2"
 description = "AI task automation for BPM engines."
 authors = ["Bennet Krause <bennet.krause@holisticon.de>"]
 repository = "https://github.com/holunda-io/bpm-ai"

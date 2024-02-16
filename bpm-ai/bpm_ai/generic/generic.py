@@ -25,7 +25,7 @@ async def generic_llm(
     )
 
     #input_data = prepare_images(input_data)  todo enable once GPT-4V is stable
-    input_data = prepare_audio(input_data, asr)
+    input_data = await prepare_audio(input_data, asr)
 
     input_md = json_to_md(input_data).strip()
 

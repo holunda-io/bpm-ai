@@ -40,7 +40,7 @@ async def compose_llm(
         return re.sub(TEMPLATE_VAR_PATTERN, lambda m: f(m.group(1)), template)
 
     #input_data = prepare_images(input_data)  todo enable once GPT-4V is stable
-    input_data = prepare_audio(input_data, asr)
+    input_data = await prepare_audio(input_data, asr)
 
     # all variables found in the template
     template_vars = re.findall(TEMPLATE_VAR_PATTERN, template)

@@ -11,9 +11,9 @@ def prepare_images(input_data: dict):
     }
 
 
-def prepare_audio(input_data: dict, asr: ASRModel | None):
+async def prepare_audio(input_data: dict, asr: ASRModel | None):
     return {
-        k: asr.transcribe(v)
+        k: await asr.transcribe(v)
         if (asr and isinstance(v, str) and is_supported_audio_file(v))
         else v for k, v in input_data.items()
     }
