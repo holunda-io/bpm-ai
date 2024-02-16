@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bpm-ai-core"
-version = "1.1.4"
+version = "1.1.5"
 description = "Core AI abstractions and helpers."
 authors = ["Bennet Krause <bennet.krause@holisticon.de>"]
 repository = "https://github.com/holunda-io/bpm-ai"
@@ -29,9 +29,8 @@ setuptools = "^68.2.2"
 faster-whisper = "^0.10.0"
 lingua-language-detector = "^2.0.2"
 torch = [
-    { version = "=2.2.0", source="pypi", platform = "darwin" },
-    { version = "=2.2.0+cpu", source = "torch-cpu", platform = "linux" },
-    { version = "=2.2.0+cpu", source = "torch-cpu", platform = "win32" },
+    { version = "=2.2.0", source="pypi", markers = "sys_platform == 'darwin'" },
+    { version = "=2.2.0+cpu", source = "torch-cpu", markers = "sys_platform != 'darwin'" },
 ]
 transformers = "^4.37.2"
 sacremoses = "^0.1.1"

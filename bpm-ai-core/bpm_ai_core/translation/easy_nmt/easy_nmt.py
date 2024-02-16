@@ -54,7 +54,7 @@ class EasyNMT(NMTModel):
         :param kwargs: Further optional parameters for the different models
         """
         if not has_easynmt:
-            raise ImportError('easynmt dependencies is not installed')
+            raise ImportError('easynmt dependencies are not installed')
 
         self._model_name = model_name
         self._fasttext_lang_id = None
