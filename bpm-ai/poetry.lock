@@ -143,13 +143,13 @@ numpy = {version = ">=1.19.0", markers = "python_version >= \"3.9\""}
 
 [[package]]
 name = "bpm-ai-core"
-version = "1.1.5"
+version = "1.1.6"
 description = "Core AI abstractions and helpers."
 optional = false
 python-versions = ">=3.11,<4.0"
 files = [
-    {file = "bpm_ai_core-1.1.5-py3-none-any.whl", hash = "sha256:51b4af0a5b9c2774ec1f14bac6a690dab8c07187e9a865c0b1dfe4841a19aa82"},
-    {file = "bpm_ai_core-1.1.5.tar.gz", hash = "sha256:c23aea3bbc2fb93431195353123d6589b23708eca17db4dfc98904d26f719e10"},
+    {file = "bpm_ai_core-1.1.6-py3-none-any.whl", hash = "sha256:c2378dc59d3a43fdaebbe474330e66b98e5b7db664f1407abb414e5af08a0625"},
+    {file = "bpm_ai_core-1.1.6.tar.gz", hash = "sha256:864090b780f168fe0e7fc071f05ca7afe85c7aa56aa107e300baf64ba627d01e"},
 ]
 
 [package.dependencies]
@@ -2892,4 +2892,4 @@ inference = ["faster-whisper", "langcodes", "lingua-language-detector", "nltk", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "c89960780be944ed250f1a0ed7456e8af8e2f61930af3bac2174b31f4e7bead1"
+content-hash = "0de1fd1b11dbff960c2a328ad9dc80ba87fb0ac71a56c195b630bf8ec061fdaf"
