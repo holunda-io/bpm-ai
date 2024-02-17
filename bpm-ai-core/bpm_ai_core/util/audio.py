@@ -29,7 +29,7 @@ def load_audio(path: str) -> io.BytesIO:
         response = requests.get(path)
         audio = io.BytesIO(response.content)
         if path.endswith(tuple(supported_audio_extensions)):
-            audio.name = f"audio.{path.rsplit('.', 1)}"
+            audio.name = f"audio.{path.rsplit('.', 1)[-1]}"
     elif os.path.isfile(path):
         # Handle local file path
         with open(path, 'rb') as f:
