@@ -1,6 +1,6 @@
 import io
-from typing import Optional, Dict, Any, Union
 import logging
+from typing import Optional, Union
 
 from bpm_ai_core.speech_recognition.asr import ASRModel
 from bpm_ai_core.util.audio import load_audio
@@ -8,7 +8,7 @@ from bpm_ai_core.util.audio import load_audio
 logger = logging.getLogger(__name__)
 
 try:
-    from openai import AsyncOpenAI
+    from openai import AsyncOpenAI, OpenAIError
     import httpx
 
     has_openai = True
