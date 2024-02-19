@@ -4,12 +4,13 @@ from bpm_ai_core.classification.zero_shot_classifier import ZeroShotClassifier
 from bpm_ai_core.llm.common.llm import LLM
 from bpm_ai_core.llm.common.message import ToolCallsMessage
 from bpm_ai_core.llm.common.tool import Tool
+from bpm_ai_core.ocr.ocr import OCR
 from bpm_ai_core.prompt.prompt import Prompt
 from bpm_ai_core.speech_recognition.asr import ASRModel
 from bpm_ai_core.tracing.decorators import trace
 
 from bpm_ai.common.json_utils import json_to_md
-from bpm_ai.common.multimodal import prepare_audio
+from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_images
 from bpm_ai.decide.schema import get_cot_decision_output_schema, get_decision_output_schema
 
 
@@ -21,6 +22,7 @@ async def decide_llm(
     output_type: str,
     possible_values: list[Any] | None = None,
     strategy: str | None = None,
+    ocr: OCR | None = None,
     asr: ASRModel | None = None
 ) -> dict:
     if strategy == 'cot':
@@ -35,8 +37,12 @@ async def decide_llm(
         callable=lambda **x: x
     )
 
-    #input_data = prepare_images(input_data)  todo enable once GPT-4V is stable
-    input_data = await prepare_audio(input_data, asr)
+    if llm.supports_images():
+        input_data = prepare_images_for_llm_prompt(input_data)
+    else:
+        input_data = await ocr_images(input_data, ocr)
+
+    input_data = await transcribe_audio(input_data, asr)
 
     input_md = json_to_md(input_data).strip()
 
@@ -64,6 +70,7 @@ async def decide_classifier(
     output_type: str,
     question: str | None = None,
     possible_values: list[Any] | None = None,
+    ocr: OCR | None = None,
     asr: ASRModel | None = None
 ) -> dict:
     if not possible_values and output_type != "boolean":
@@ -72,8 +79,8 @@ async def decide_classifier(
         possible_values = ["yes", "no"]
     possible_values = [str(v) for v in possible_values]
 
-    #input_data = prepare_images(input_data)  todo enable once GPT-4V is stable
-    input_data = await prepare_audio(input_data, asr)
+    input_data = await ocr_images(input_data, ocr)
+    input_data = await transcribe_audio(input_data, asr)
 
     input_md = json_to_md(input_data).strip()
 
@@ -91,7 +98,7 @@ async def decide_classifier(
         result = (result_raw == 'yes') if result_raw else None
     elif output_type == "integer":
         result = int(result_raw) if result_raw else None
-    elif output_type == "float":
+    elif output_type == "number":
         result = float(result_raw) if result_raw else None
     else:
         result = result_raw

@@ -3,10 +3,11 @@ from typing import Callable, Any
 
 from bpm_ai_core.classification.transformers_classifier import TransformersClassifier, DEFAULT_MODEL_MULTI, \
     DEFAULT_MODEL_EN
-from bpm_ai_core.extractive_qa.question_answering import ExtractiveQA
+from bpm_ai_core.question_answering.question_answering import QuestionAnswering
 from bpm_ai_core.llm.common.llm import LLM
 from bpm_ai_core.llm.common.message import ToolCallsMessage
 from bpm_ai_core.llm.common.tool import Tool
+from bpm_ai_core.ocr.ocr import OCR
 from bpm_ai_core.pos.spacy_pos_tagger import SpacyPOSTagger
 from bpm_ai_core.prompt.prompt import Prompt
 from bpm_ai_core.speech_recognition.asr import ASRModel
@@ -15,7 +16,7 @@ from bpm_ai_core.util.json import expand_simplified_json_schema
 from bpm_ai_core.util.language import indentify_language
 
 from bpm_ai.common.json_utils import json_to_md
-from bpm_ai.common.multimodal import prepare_audio
+from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_images
 
 
 @trace("bpm-ai-extract", ["llm"])
@@ -25,6 +26,7 @@ async def extract_llm(
     output_schema: dict[str, str | dict],
     multiple: bool = False,
     multiple_description: str = "",
+    ocr: OCR | None = None,
     asr: ASRModel | None = None
 ) -> dict | list[dict]:
     def transform_result(**extracted):
@@ -47,10 +49,11 @@ async def extract_llm(
         } if multiple else output_schema,
         callable=transform_result
     )
-
-    #input_data = prepare_images(input_data)  todo enable once GPT-4V is stable
-    input_data = await prepare_audio(input_data, asr)
-
+    if llm.supports_images():
+        input_data = prepare_images_for_llm_prompt(input_data)
+    else:
+        input_data = await ocr_images(input_data, ocr)
+    input_data = await transcribe_audio(input_data, asr)
     input_md = json_to_md(input_data).strip()
 
     prompt = Prompt.from_file("extract", input=input_md)
@@ -115,15 +118,16 @@ def strip_non_numeric_chars(s):
 
 @trace("bpm-ai-extract", ["extractive-qa"])
 async def extract_qa(
-    extractive_qa: ExtractiveQA,
+    qa: QuestionAnswering,
     input_data: dict[str, str | dict],
     output_schema: dict[str, str | dict],
     multiple: bool = False,
     multiple_description: str = "",
+    ocr: OCR | None = None,
     asr: ASRModel | None = None
 ) -> dict | list[dict]:
-    #input_data = prepare_images(input_data)  todo enable once GPT-4V is stable
-    input_data = await prepare_audio(input_data, asr)
+    input_data = await ocr_images(input_data, ocr)
+    input_data = await transcribe_audio(input_data, asr)
 
     input_md = json_to_md(input_data).strip()
     output_schema = expand_simplified_json_schema(output_schema)["properties"]
@@ -138,7 +142,7 @@ async def extract_qa(
         question = question.format(**existing_values)
         question = question[:1].upper() + question[1:]  # capitalize first word
 
-        answer = extractive_qa.answer(text, question, confidence_threshold=0.01)
+        answer = qa.answer(text, question, confidence_threshold=0.01)
 
         if answer is None:
             return None
@@ -148,7 +152,7 @@ async def extract_qa(
                 return int(strip_non_numeric_chars(answer))
             except ValueError:
                 return None
-        elif field_type == "float":
+        elif field_type == "number":
             try:
                 return float(strip_non_numeric_chars(answer))
             except ValueError:

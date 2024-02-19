@@ -1,4 +1,5 @@
-from bpm_ai_core.extractive_qa.transformers_qa import TransformersExtractiveQA
+from bpm_ai_core.ocr.tesseract import TesseractOCR
+from bpm_ai_core.question_answering.transformers_qa import TransformersExtractiveQA
 from bpm_ai_core.llm.openai_chat import ChatOpenAI
 from bpm_ai_core.testing.fake_llm import FakeLLM, tool_response
 
@@ -66,7 +67,7 @@ async def test_extract_multiple(use_real_llm=False):
 async def test_extract_qa():
     qa = TransformersExtractiveQA()
     actual = await extract_qa(
-        extractive_qa=qa,
+        qa=qa,
         input_data={"email": "Hey it's me, John Meier. I live in Hamburg and I am 30 years old."},
         output_schema={
             "lastname": "What is the family name (not forename)?",
@@ -81,19 +82,40 @@ async def test_extract_qa():
     assert actual == {'lastname': 'Meier', 'firstname': 'John', 'age': 30, 'hometown': 'Hamburg'}
 
 
+async def test_extract_ocr():
+    qa = TransformersExtractiveQA()
+    ocr = TesseractOCR()
+    actual = await extract_qa(
+        qa=qa,
+        ocr=ocr,
+        input_data={
+            "email": "Hey it's me, John Meier. I attached the invoice. Have a good one.",
+            "invoice": "sample-invoice.webp"
+        },
+        output_schema={
+            "invoice_number": "What is the invoice number?",
+            "total": {
+                "type": "number",
+                "description": "What is the total?"
+            },
+        }
+    )
+    assert actual == {'invoice_number': '102', 'total': 300.0}
+
+
 async def test_extract_qa_multiple():
     text = "We received the following orders: Pizza (10.99€) and Steak (28.89€)."
     schema = {
         "product": "What is the name of the product?",
         "price_eur": {
-            "type": "float",
+            "type": "number",
             "description": "What is price in Euro for the product?"
         },
     }
 
     qa = TransformersExtractiveQA()
     actual = await extract_qa(
-        extractive_qa=qa,
+        qa=qa,
         input_data={"email": text},
         output_schema=schema,
         multiple=True,

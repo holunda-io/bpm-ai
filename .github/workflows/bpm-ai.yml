@@ -14,15 +14,22 @@ jobs:
         working-directory: ./bpm-ai/tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      -
+        uses: actions/checkout@v4
+      -
+        run: sudo apt-get install -y tesseract-ocr poppler-utils
+      -
+        uses: actions/setup-python@v4
         with:
           python-version: "3.11"
-      - name: Set up poetry
+      -
+        name: Set up poetry
         uses: abatilo/actions-poetry@v2
         with:
           poetry-version: "1.6.1"
-      - name: Install dependencies
+      -
+        name: Install dependencies
         run: poetry install --all-extras
-      - name: Run pytest
+      -
+        name: Run pytest
         run: poetry run pytest

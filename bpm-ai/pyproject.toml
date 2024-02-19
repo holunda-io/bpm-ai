@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bpm-ai"
-version = "1.1.4"
+version = "1.2.0"
 description = "AI task automation for BPM engines."
 authors = ["Bennet Krause <bennet.krause@holisticon.de>"]
 repository = "https://github.com/holunda-io/bpm-ai"
@@ -10,7 +10,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-bpm-ai-core = "1.1.6"
+bpm-ai-core = "1.2.0"
 openai = "^1.11.0"
 langfuse = "^2.13.3"
 
@@ -22,6 +22,7 @@ sentencepiece = { version = "^0.1.99", optional = true }
 nltk = { version = "^3.8.1", optional = true }
 transformers = { version = "^4.37.2", optional = true }
 sacremoses = { version = "^0.1.1", optional = true }
+pytesseract = { version = "^0.3.10", optional = true }
 
 [tool.poetry.extras]
 inference = [
@@ -30,6 +31,7 @@ inference = [
     "langcodes",
     "transformers",
     "sacremoses",
+    "pytesseract",
     "sentencepiece",
     "nltk",
 ]

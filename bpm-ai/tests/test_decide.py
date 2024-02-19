@@ -65,7 +65,7 @@ async def test_decide_classifier_float():
         classifier=classifier,
         input_data={"email": "I got 9.5 points in my exam!"},
         possible_values=[5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10],
-        output_type="float"
+        output_type="number"
     )
 
     assert result["decision"] == 9.5

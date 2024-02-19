@@ -4,12 +4,13 @@ from typing import TypedDict, Callable
 from bpm_ai_core.llm.common.llm import LLM
 from bpm_ai_core.llm.common.message import ToolCallsMessage
 from bpm_ai_core.llm.common.tool import Tool
+from bpm_ai_core.ocr.ocr import OCR
 from bpm_ai_core.prompt.prompt import Prompt
 from bpm_ai_core.speech_recognition.asr import ASRModel
 from bpm_ai_core.tracing.decorators import trace
 
 from bpm_ai.common.json_utils import json_to_md
-from bpm_ai.common.multimodal import prepare_audio
+from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_images
 from bpm_ai.compose.util import remove_stop_words, type_to_prompt_type_str, decode_if_needed
 
 TEMPLATE_VAR_PATTERN = r'\{\s*([^{}\s]+(?:\s*[^{}\s]+)*)\s*\}'
@@ -30,6 +31,7 @@ async def compose_llm(
     input_data: dict[str, str | dict],
     template: str,
     properties: TextProperties,
+    ocr: OCR | None = None,
     asr: ASRModel | None = None
 ) -> dict:
     def desc_to_var_name(desc: str):
@@ -39,8 +41,11 @@ async def compose_llm(
     def format_vars(template: str, f: Callable[[str], str]):
         return re.sub(TEMPLATE_VAR_PATTERN, lambda m: f(m.group(1)), template)
 
-    #input_data = prepare_images(input_data)  todo enable once GPT-4V is stable
-    input_data = await prepare_audio(input_data, asr)
+    if llm.supports_images():
+        input_data = prepare_images_for_llm_prompt(input_data)
+    else:
+        input_data = await ocr_images(input_data, ocr)
+    input_data = await transcribe_audio(input_data, asr)
 
     # all variables found in the template
     template_vars = re.findall(TEMPLATE_VAR_PATTERN, template)
