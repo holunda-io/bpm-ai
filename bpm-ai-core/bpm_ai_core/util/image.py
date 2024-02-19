@@ -60,9 +60,10 @@ def load_images(path: str) -> list[Image]:
 def pdf_to_images(pdf: bytes | str) -> list[Image]:
     with tempfile.TemporaryDirectory() as path:
         if isinstance(pdf, bytes):
-            return convert_from_bytes(pdf, output_folder=path, dpi=100)
+            func = convert_from_bytes
         else:
-            return convert_from_path(pdf, output_folder=path, dpi=100)
+            func = convert_from_path
+        return func(pdf, output_folder=path, dpi=100, use_pdftocairo=True)
 
 
 def base64_encode_image(image: Image):
