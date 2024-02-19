@@ -1,37 +1,38 @@
 from abc import ABC, abstractmethod
 
+from PIL.Image import Image
 from pydantic import BaseModel
 
 from bpm_ai_core.tracing.tracing import Tracing
 
 
 class QAResult(BaseModel):
-    answer: str
+    answer: str | None
     score: float
-    start_index: int
-    end_index: int
+    start_index: int | None
+    end_index: int | None
 
 
-class ExtractiveQA(ABC):
+class QuestionAnswering(ABC):
     """
-    Extractive Question Answering Model
+    (Extractive) Question Answering Model
     """
 
     @abstractmethod
     def answer_with_metadata(
             self,
-            context: str,
+            context: str | Image,
             question: str
     ) -> QAResult:
         pass
 
     def answer(
             self,
-            context: str,
+            context: str | Image,
             question: str,
             confidence_threshold: float | None = 0.1
     ) -> str:
-        Tracing.tracers().start_span("extractive_qa", inputs={
+        Tracing.tracers().start_span("qa", inputs={
             "context": context,
             "question": question,
             "confidence_threshold": confidence_threshold

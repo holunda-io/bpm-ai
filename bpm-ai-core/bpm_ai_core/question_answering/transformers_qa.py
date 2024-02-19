@@ -1,6 +1,8 @@
 import logging
 
-from bpm_ai_core.extractive_qa.question_answering import ExtractiveQA, QAResult
+from PIL.Image import Image
+
+from bpm_ai_core.question_answering.question_answering import QuestionAnswering, QAResult
 
 try:
     from transformers import pipeline, AutoTokenizer
@@ -11,7 +13,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class TransformersExtractiveQA(ExtractiveQA):
+class TransformersExtractiveQA(QuestionAnswering):
     """
     Local extractive question answering model based on Huggingface transformers library.
 
@@ -25,9 +27,12 @@ class TransformersExtractiveQA(ExtractiveQA):
 
     def answer_with_metadata(
             self,
-            context: str,
+            context: str | Image,
             question: str
     ) -> QAResult:
+        if not isinstance(context, str):
+            raise Exception('TransformersExtractiveQA only supports string input')
+
         qa_model = pipeline("question-answering", model=self.model)
 
         tokenizer = AutoTokenizer.from_pretrained(self.model)

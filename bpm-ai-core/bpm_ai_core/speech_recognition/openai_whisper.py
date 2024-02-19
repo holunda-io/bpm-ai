@@ -40,9 +40,7 @@ class OpenAIWhisperASR(ASRModel):
             raise ImportError('openai is not installed')
         self.whisper_model = whisper_model
 
-    async def _transcribe(self, audio: Union[str, io.BytesIO], language: Optional[str] = None) -> str:
-        if isinstance(audio, str):
-            audio = load_audio(audio)
+    async def _transcribe(self, audio: io.BytesIO, language: Optional[str] = None) -> str:
         transcript = await client.audio.transcriptions.create(
             model=self.whisper_model,
             file=audio,

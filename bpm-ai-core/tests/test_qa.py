@@ -1,5 +1,6 @@
-from bpm_ai_core.classification.transformers_classifier import TransformersClassifier
-from bpm_ai_core.extractive_qa.transformers_qa import TransformersExtractiveQA
+from bpm_ai_core.question_answering.transformers_qa import TransformersExtractiveQA
+from bpm_ai_core.ocr.tesseract import TesseractOCR
+from bpm_ai_core.util.image import load_images
 
 
 def test_qa():
@@ -11,6 +12,19 @@ def test_qa():
     actual = qa.answer(context, question)
 
     assert actual.strip() == expected
+
+
+async def test_qa_ocr():
+    ocr = TesseractOCR()
+    images = load_images("dummy.pdf")
+    text = await ocr.images_to_text(images)
+
+    question = "What kind of PDF is this?"
+
+    qa = TransformersExtractiveQA()
+    actual = qa.answer(text, question)
+
+    assert actual.strip() == "Dummy"
 
 
 def test_qa_unanswerable():

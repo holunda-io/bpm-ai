@@ -6,7 +6,7 @@ from typing import List, Dict, Any
 from jinja2 import Template
 
 from bpm_ai_core.llm.common.message import ChatMessage, ToolCallsMessage, ToolResultMessage, SingleToolCallMessage
-from bpm_ai_core.util.image import load_image
+from bpm_ai_core.util.image import load_images
 
 
 class Prompt:
@@ -70,7 +70,7 @@ class Prompt:
                             content_parts.append(before_text)
                         # Add the image
                         image_url = match.group(1)
-                        content_parts.append(load_image(image_url))
+                        content_parts.extend(load_images(image_url))
                         start = match.end()
 
                     # Add the remaining text after the last image

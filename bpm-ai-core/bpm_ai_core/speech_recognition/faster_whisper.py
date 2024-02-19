@@ -32,8 +32,6 @@ class FasterWhisperASR(ASRModel):
             compute_type=compute_type
         )
 
-    async def _transcribe(self, audio: str | io.BytesIO, language: str = None) -> str:
-        if isinstance(audio, str):
-            audio = load_audio(audio)
+    async def _transcribe(self, audio: io.BytesIO, language: str = None) -> str:
         segments, info = self.model.transcribe(audio, language=language)
         return "".join([s.text for s in list(segments)])

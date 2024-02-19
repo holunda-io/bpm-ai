@@ -69,5 +69,11 @@ class AnthropicChat(LLM):
             header = ""
         return header + m.content
 
+    def supports_images(self) -> bool:
+        return False
+
+    def supports_audio(self) -> bool:
+        return False
+
     def name(self) -> str:
         return "anthropic"

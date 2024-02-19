@@ -21,6 +21,8 @@ class FakeLLM(LLM):
         responses: list[ChatMessage] | None = None,
         tools: list[list[Tool]] | None = None,
         real_llm_delegate: LLM | None = None,
+        supports_images: bool = False,
+        supports_audio: bool = False,
         name: str = "test-llm"
     ):
         super().__init__("test-model")
@@ -30,6 +32,9 @@ class FakeLLM(LLM):
         self.tools = tools or []
         self.response_idx: int = 0
         self.requests = []
+
+        self._supports_images = supports_images
+        self._supports_audio = supports_audio
 
         self.real_llm_delegate = real_llm_delegate
 
@@ -64,6 +69,12 @@ class FakeLLM(LLM):
         assert tool_name in [f.name for f in self.tools[-1]]
         if is_fixed_tool_choice:
             assert len(self.tools[-1]) == 1 and self.tools[-1][0].name == tool_name
+
+    def supports_images(self) -> bool:
+        return self._supports_images
+
+    def supports_audio(self) -> bool:
+        return self._supports_audio
 
     def name(self) -> str:
         return self._name

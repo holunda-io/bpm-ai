@@ -1,5 +1,6 @@
 try:
     from lingua import Language, LanguageDetectorBuilder
+
     has_lingua = True
 
     languages = [Language.ENGLISH, Language.FRENCH, Language.GERMAN, Language.SPANISH, Language.ITALIAN,
@@ -12,3 +13,7 @@ except ImportError:
 
 def indentify_language(text: str) -> str | None:
     return lang_detector.detect_language_of(text).iso_code_639_1.name.lower()
+
+
+def indentify_language_iso_639_3(text: str) -> str | None:
+    return lang_detector.detect_language_of(text).iso_code_639_3.name.lower()

@@ -59,5 +59,13 @@ class LLM(ABC):
         pass
 
     @abstractmethod
+    def supports_images(self) -> bool:
+        pass
+
+    @abstractmethod
+    def supports_audio(self) -> bool:
+        pass
+
+    @abstractmethod
     def name(self) -> str:
         pass

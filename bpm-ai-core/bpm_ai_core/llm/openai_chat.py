@@ -117,5 +117,11 @@ class ChatOpenAI(LLM):
             json_object = None
         return json_object
 
+    def supports_images(self) -> bool:
+        return "vision" in self.model
+
+    def supports_audio(self) -> bool:
+        return False
+
     def name(self) -> str:
         return "openai"
