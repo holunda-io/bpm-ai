@@ -86,9 +86,10 @@ def create_json_object(target: str, schema, get_value: Callable, current_obj=Non
             current_obj[name] = create_json_object(target, properties['properties'], get_value, {}, root_obj, full_key)
         else:
             description = properties.get('description')
+            enum = properties.get('enum', None)
             if prefix:
                 description = prefix + (description[:1].lower() + description[1:])
-            value = get_value(target, full_key, properties['type'], description, root_obj)
+            value = get_value(target, full_key, properties['type'], description, enum, root_obj)
             current_obj[name] = value
             root_obj[full_key] = value
 
@@ -147,12 +148,17 @@ async def extract_qa(
     input_md = json_to_md(input_data).strip()
     output_schema = expand_simplified_json_schema(output_schema)["properties"]
 
-    def extract_value(text: str, field_name: str, field_type: str, description: str, existing_values: dict) -> Any:
+    def extract_value(text: str, field_name: str, field_type: str, description: str, enum: list, existing_values: dict) -> Any:
         """
         Extract value of type `field_type` from `text` based on `description`.
         `{}` placeholders in `description` will be formatted using `existing_values` dict which has flat dot notation keys
         (e.g. person.age if there is a person object with an age field).
         """
+        if enum:
+            # if an enum of values is given for the field, perform a classification instead of extraction
+            classifier = TransformersClassifier()
+            return classifier.classify(text, enum)
+
         question = description + "?" if not description.endswith("?") else description
         question = question.format(**existing_values)
         question = question[:1].upper() + question[1:]  # capitalize first word

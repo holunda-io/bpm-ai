@@ -130,6 +130,23 @@ async def test_extract_qa():
     assert actual == {'lastname': 'Meier', 'firstname': 'John', 'age': 30, 'hometown': 'Hamburg'}
 
 
+async def test_extract_qa_enum():
+    qa = TransformersExtractiveQA()
+    actual = await extract_qa(
+        qa=qa,
+        input_data={"email": "Hey it's me, John Meier. I live in Hamburg and I am 30 years old."},
+        output_schema={
+            "name": "What is the customers full name?",
+            "country": {
+                "type": "string",
+                "description": "What is the customers country?",
+                "enum": ["US", "DE", "SE", "IT"]
+            }
+        }
+    )
+    assert actual == {'name': 'John Meier', 'country': 'DE'}
+
+
 async def test_extract_qa_none():
     input_data = {
         "email": None,
