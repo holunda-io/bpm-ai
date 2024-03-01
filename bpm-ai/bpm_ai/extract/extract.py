@@ -15,6 +15,7 @@ from bpm_ai_core.tracing.decorators import trace
 from bpm_ai_core.util.json import expand_simplified_json_schema
 from bpm_ai_core.util.language import indentify_language
 
+from bpm_ai.common.errors import MissingParameterError
 from bpm_ai.common.json_utils import json_to_md
 from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_images
 
@@ -22,13 +23,25 @@ from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_pr
 @trace("bpm-ai-extract", ["llm"])
 async def extract_llm(
     llm: LLM,
-    input_data: dict[str, str | dict],
+    input_data: dict[str, str | dict | None],
     output_schema: dict[str, str | dict],
     multiple: bool = False,
     multiple_description: str = "",
     ocr: OCR | None = None,
     asr: ASRModel | None = None
 ) -> dict | list[dict]:
+    if all(value is None for value in input_data.values()):
+        return input_data
+
+    if output_schema and llm.supports_images():
+        input_data = prepare_images_for_llm_prompt(input_data)
+    else:
+        input_data = await ocr_images(input_data, ocr)
+    input_data = await transcribe_audio(input_data, asr)
+
+    if not output_schema:
+        return input_data
+
     def transform_result(**extracted):
         def empty_to_none(v):
             return None if v in ["", "null"] else v
@@ -41,7 +54,7 @@ async def extract_llm(
         else:
             return {k: empty_to_none(v) for k, v in extracted.items()}
 
-    tool = Tool.from_callable(
+    extract_tool = Tool.from_callable(
         "information_extraction",
         f"Extracts the relevant {'entities' if multiple else 'information'} from the passage.",
         args_schema={
@@ -49,16 +62,12 @@ async def extract_llm(
         } if multiple else output_schema,
         callable=transform_result
     )
-    if llm.supports_images():
-        input_data = prepare_images_for_llm_prompt(input_data)
-    else:
-        input_data = await ocr_images(input_data, ocr)
-    input_data = await transcribe_audio(input_data, asr)
+
     input_md = json_to_md(input_data).strip()
 
     prompt = Prompt.from_file("extract", input=input_md)
 
-    result = await llm.predict(prompt, tools=[tool])
+    result = await llm.predict(prompt, tools=[extract_tool])
 
     if isinstance(result, ToolCallsMessage):
         return result.tool_calls[0].invoke()
@@ -119,15 +128,21 @@ def strip_non_numeric_chars(s):
 @trace("bpm-ai-extract", ["extractive-qa"])
 async def extract_qa(
     qa: QuestionAnswering,
-    input_data: dict[str, str | dict],
+    input_data: dict[str, str | dict | None],
     output_schema: dict[str, str | dict],
     multiple: bool = False,
     multiple_description: str = "",
     ocr: OCR | None = None,
     asr: ASRModel | None = None
 ) -> dict | list[dict]:
+    if all(value is None for value in input_data.values()):
+        return input_data
+
     input_data = await ocr_images(input_data, ocr)
     input_data = await transcribe_audio(input_data, asr)
+
+    if not output_schema:
+        return input_data
 
     input_md = json_to_md(input_data).strip()
     output_schema = expand_simplified_json_schema(output_schema)["properties"]
@@ -170,8 +185,8 @@ async def extract_qa(
         pos_tags = tagger.tag(input_md)
         candidates = filter_and_join(pos_tags)
 
-        if not multiple_description:
-            raise Exception("Description for entity type is required.")
+        if not multiple_description or multiple_description.isspace():
+            raise MissingParameterError("Description for entity type is required.")
 
         entities = []
         for candidate in candidates:

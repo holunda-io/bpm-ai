@@ -9,6 +9,7 @@ from bpm_ai_core.prompt.prompt import Prompt
 from bpm_ai_core.speech_recognition.asr import ASRModel
 from bpm_ai_core.tracing.decorators import trace
 
+from bpm_ai.common.errors import MissingParameterError
 from bpm_ai.common.json_utils import json_to_md
 from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_images
 from bpm_ai.compose.util import remove_stop_words, type_to_prompt_type_str, decode_if_needed
@@ -34,6 +35,9 @@ async def compose_llm(
     ocr: OCR | None = None,
     asr: ASRModel | None = None
 ) -> dict:
+    if template is None:
+        raise MissingParameterError("template is required")
+
     def desc_to_var_name(desc: str):
         v = remove_stop_words(desc, separator='_')
         return re.sub(r'[^A-Za-z0-9_\'äöüÄÖÜß]+', '', v).lower()

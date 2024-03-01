@@ -1,6 +1,7 @@
 from bpm_ai_core.ocr.tesseract import TesseractOCR
 from bpm_ai_core.question_answering.transformers_qa import TransformersExtractiveQA
 from bpm_ai_core.llm.openai_chat import ChatOpenAI
+from bpm_ai_core.speech_recognition.faster_whisper import FasterWhisperASR
 from bpm_ai_core.testing.fake_llm import FakeLLM, tool_response
 
 from bpm_ai.extract.extract import extract_llm, extract_qa
@@ -64,6 +65,53 @@ async def test_extract_multiple(use_real_llm=False):
     assert result[2]["firstname"] == "Sepp"
 
 
+async def test_extract_none():
+    input_data = {
+        "email": None,
+        "subject": None
+    }
+    llm = FakeLLM(name="openai")
+    result = await extract_llm(
+        llm=llm,
+        input_data=input_data,
+        output_schema={
+            "firstname": "the firstname",
+        }
+    )
+
+    # LLM should not be used if input is all None
+    llm.assert_no_request()
+
+    assert result["email"] is None
+    assert result["subject"] is None
+
+
+async def test_extract_no_output_schema():
+    input_data = {
+        "doc": "example.png",
+        "doc2": "test.mp3",
+        "subject": "Test"
+    }
+    output_schema = {}
+
+    llm = FakeLLM(name="openai")
+    result = await extract_llm(
+        llm=llm,
+        input_data=input_data,
+        output_schema=output_schema,
+        ocr=TesseractOCR(),
+        asr=FasterWhisperASR()
+    )
+
+    # LLM should not be used if output_schema is empty
+    llm.assert_no_request()
+
+    # ocr and asr should still be applied if output_schema is empty
+    assert result["doc"].strip() == "example image"
+    assert "half-fantastic" in result["doc2"]
+    assert result["subject"] == "Test"
+
+
 async def test_extract_qa():
     qa = TransformersExtractiveQA()
     actual = await extract_qa(
@@ -80,6 +128,47 @@ async def test_extract_qa():
         }
     )
     assert actual == {'lastname': 'Meier', 'firstname': 'John', 'age': 30, 'hometown': 'Hamburg'}
+
+
+async def test_extract_qa_none():
+    input_data = {
+        "email": None,
+        "subject": None
+    }
+    qa = TransformersExtractiveQA()
+    result = await extract_qa(
+        qa=qa,
+        input_data=input_data,
+        output_schema={
+            "firstname": "the firstname",
+        }
+    )
+
+    assert result["email"] is None
+    assert result["subject"] is None
+
+
+async def test_extract_qa_no_output_schema():
+    input_data = {
+        "doc": "example.png",
+        "doc2": "test.mp3",
+        "subject": "Test"
+    }
+    output_schema = {}
+
+    qa = TransformersExtractiveQA()
+    result = await extract_qa(
+        qa=qa,
+        input_data=input_data,
+        output_schema=output_schema,
+        ocr=TesseractOCR(),
+        asr=FasterWhisperASR()
+    )
+
+    # ocr and asr should still be applied if output_schema is empty
+    assert result["doc"].strip() == "example image"
+    assert "half-fantastic" in result["doc2"]
+    assert result["subject"] == "Test"
 
 
 async def test_extract_ocr():

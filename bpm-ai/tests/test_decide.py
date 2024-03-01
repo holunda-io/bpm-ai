@@ -31,6 +31,26 @@ async def test_decide(use_real_llm=False):
     assert result["decision"] == "yup"
 
 
+async def test_decide_none():
+    input_data = {
+        "email": None,
+        "subject": None
+    }
+    llm = FakeLLM(name="openai")
+    result = await decide_llm(
+        llm=llm,
+        input_data=input_data,
+        instructions="Is the user older than 18 years?",
+        output_type="boolean"
+    )
+
+    # LLM should not be used if input is all None
+    llm.assert_no_request()
+
+    assert result["decision"] is None
+    assert result["reasoning"] == "No input values present."
+
+
 async def test_decide_classifier():
     classifier = TransformersClassifier()
 
@@ -69,3 +89,20 @@ async def test_decide_classifier_float():
     )
 
     assert result["decision"] == 9.5
+
+
+async def test_decide_classifier_none():
+    input_data = {
+        "email": None,
+        "subject": None
+    }
+    classifier = TransformersClassifier()
+    result = await decide_classifier(
+        classifier=classifier,
+        input_data=input_data,
+        question="Is the user older than 18 years?",
+        output_type="boolean"
+    )
+
+    assert result["decision"] is None
+    assert result["reasoning"] == "No input values present."

@@ -43,3 +43,26 @@ async def test_compose(use_real_llm=False):
     assert "Max" in result["text"]
     assert "Lisa" in result["text"]
     assert "shipped" in result["text"]
+
+
+async def test_compose_empty_template():
+    template = ""
+    llm = FakeLLM(name="openai")
+    result = await compose_llm(
+        llm=llm,
+        input_data={"email": "Hey, where is my order? Max"},
+        template=template,
+        properties={
+            "language": "English",
+            "type": "letter",
+            "tone": "friendly",
+            "length": "short",
+            "style": "formal",
+            "temperature": "0"
+        }
+    )
+
+    # LLM should not be used if template is empty
+    llm.assert_no_request()
+
+    assert result["text"] == ""
