@@ -1,0 +1,7 @@
+<output_instructions>
+Output your result as a valid JSON object in <result></result> tags, precisely following the JSON schema given in <schema></schema> tags below.
+</output_instructions>
+
+<schema>
+{{output_schema}}
+</schema>
