@@ -58,4 +58,3 @@ def expand_simplified_json_schema(data: Dict[str, Any]) -> Dict[str, Any]:
     json_schema = {}
     parse(data, json_schema)
     return json_schema
-

@@ -1,6 +1,5 @@
 import logging
 
-from bpm_ai_core.llm.common.message import ChatMessage, ToolCallsMessage
 from bpm_ai_core.tracing.tracer import Tracer
 
 try:
@@ -32,7 +31,7 @@ class LangfuseTracer(Tracer):
         self.generation: StatefulGenerationClient | None = None
         self.current_tool = None
 
-    def start_trace(self, name: str, inputs: dict, tags: list[str] = None):
+    def start_trace(self, name: str, inputs: dict | list[dict], tags: list[str] = None):
         if self.trace:
             raise Exception("Trace already started for this thread - end it first")
         self.trace = self.langfuse.trace(
@@ -74,11 +73,8 @@ class LangfuseTracer(Tracer):
         )
 
     def start_llm_trace(self, llm, messages: list, current_try: int, tools=None):
-        from bpm_ai_core.util.openai import messages_to_openai_dicts, json_schema_to_openai_function
-        inputs = messages_to_openai_dicts(messages)
-
         if not self.trace and not self.span_stack:
-            self.start_trace("unnamed", inputs=inputs)
+            self.start_trace("unnamed", inputs=messages)
             self.implicit_trace = True
             client = self.trace
         elif self.span_stack:
@@ -91,34 +87,24 @@ class LangfuseTracer(Tracer):
             model_parameters={
                 "temperature": llm.temperature
             },
-            input=inputs,
+            input=messages,
             metadata={
                 "current_try": current_try,
                 "max_tries": llm.max_retries + 1,
-                "tools": [
-                    json_schema_to_openai_function(f.name, f.description, f.args_schema) for f in tools
-                ] if tools else None
+                "tools": tools
             }
         )
 
-    def end_llm_trace(self, completion: ChatMessage | None = None, error_msg: str = None):
+    def end_llm_trace(self, completion=None, error_msg: str = None):
         if not self.generation:
             raise Exception("No generation started for this thread")
-        output = {
-            "role": "assistant",
-            "content": completion.content,
-            **({"tool_calls":
-                    [{"function": {"name": c.name, "arguments": c.payload_dict()}} for c in completion.tool_calls]
-                } if isinstance(completion, ToolCallsMessage) else {}
-               )
-        }
         self.generation.end(
-            output=output,
+            output=completion,
             level="ERROR" if error_msg else None,
             status_message=error_msg
         )
         if self.implicit_trace:
-            self.end_trace(outputs=output)
+            self.end_trace(outputs=completion)
 
     def start_tool_trace(self, tool, inputs: dict):
         self.start_span(tool.name, inputs)

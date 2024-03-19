@@ -3,13 +3,13 @@ from typing import List, Dict, Any
 
 from PIL.Image import Image
 
-from bpm_ai_core.llm.common.message import ChatMessage, ToolCallsMessage, ToolResultMessage
+from bpm_ai_core.llm.common.message import ChatMessage, ToolResultMessage, AssistantMessage
 from bpm_ai_core.util.image import base64_encode_image
 
 logger = logging.getLogger(__name__)
 
 
-def get_openai_tool_call_dict(message: ToolCallsMessage):
+def get_openai_tool_call_dict(message: AssistantMessage):
     return {
         "tool_calls": [
             {
@@ -25,8 +25,12 @@ def get_openai_tool_call_dict(message: ToolCallsMessage):
     }
 
 
+def messages_to_openai_dicts(messages: List[ChatMessage]):
+    return [message_to_openai_dict(m) for m in messages]
+
+
 def message_to_openai_dict(message: ChatMessage) -> dict:
-    if isinstance(message, ToolCallsMessage):
+    if isinstance(message, AssistantMessage) and message.has_tool_calls():
         extra_dict = {
             **get_openai_tool_call_dict(message)
         }
@@ -77,10 +81,6 @@ def str_to_openai_text_dict(text: str) -> dict:
         "type": "text",
         "text": text
     }
-
-
-def messages_to_openai_dicts(messages: List[ChatMessage]):
-    return [message_to_openai_dict(m) for m in messages]
 
 
 def json_schema_to_openai_function(name: str, desc: str, schema: Dict[str, Any]) -> dict:

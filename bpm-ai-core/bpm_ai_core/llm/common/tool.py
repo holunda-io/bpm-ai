@@ -70,7 +70,7 @@ class Tool(BaseModel):
     callable: Optional[Callable] = None
 
     @classmethod
-    def from_callable(
+    def create(
         cls,
         name: str,
         description: str,

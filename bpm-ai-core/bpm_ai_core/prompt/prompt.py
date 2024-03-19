@@ -3,10 +3,16 @@ import os
 import re
 from typing import List, Dict, Any
 
-from jinja2 import Template
+from jinja2 import Template, environment
 
-from bpm_ai_core.llm.common.message import ChatMessage, ToolCallsMessage, ToolResultMessage, SingleToolCallMessage
+from bpm_ai_core.llm.common.message import ChatMessage, AssistantMessage, ToolResultMessage, ToolCallMessage, \
+    UserMessage, SystemMessage
+from bpm_ai_core.prompt.filters import dict_to_markdown, dict_to_xml, dict_to_json
 from bpm_ai_core.util.image import load_images
+
+environment.DEFAULT_FILTERS['markdown'] = dict_to_markdown
+environment.DEFAULT_FILTERS['json'] = dict_to_json
+environment.DEFAULT_FILTERS['xml'] = dict_to_xml
 
 
 class Prompt:
@@ -97,7 +103,7 @@ class Prompt:
                             tool_name = tool_call_info
                             tool_call_id = None
 
-                        tool_calls.append(SingleToolCallMessage(
+                        tool_calls.append(ToolCallMessage(
                             id=(tool_call_id or tool_name).strip(),
                             name=tool_name.strip(),
                             payload=tool_call_content.strip())
@@ -108,18 +114,19 @@ class Prompt:
 
                 # Create the message object
                 content = content_parts[0] if len(content_parts) == 1 else (content_parts if len(content_parts) > 0 else None)
-                if tool_calls:
-                    message = ToolCallsMessage(content=content, tool_calls=tool_calls, role=role)
+                if role == "assistant":
+                    message = AssistantMessage(content=content, tool_calls=tool_calls if tool_calls else None)
+                elif role == "system":
+                    message = SystemMessage(content=content)
                 else:
-                    message = ChatMessage(content=content, role=role)
+                    message = UserMessage(content=content)
 
                 messages.append(message)
         else:
             # If the raw template doesn't contain any sections, treat whole file as 'user' message
-            messages = [ChatMessage(content=full_prompt, role='user')]
+            messages = [UserMessage(content=full_prompt)]
 
         return [m for m in messages if m]
-
 
     @staticmethod
     def load_template(path: str, llm_name: str) -> Template:

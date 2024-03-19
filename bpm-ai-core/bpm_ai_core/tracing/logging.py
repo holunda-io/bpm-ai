@@ -41,19 +41,13 @@ class LoggingTracer(Tracer):
             logger.info(self._indent() + f"[EVENT] {name}, inputs={inputs}, outputs={outputs}")
 
     def start_llm_trace(self, llm, messages, current_try, tools=None):
-        from bpm_ai_core.util.openai import messages_to_openai_dicts, json_schema_to_openai_function
-        inputs = messages_to_openai_dicts(messages)
-        tools = [json_schema_to_openai_function(f.name, f.description, f.args_schema) for f in tools] if tools else None
-        logger.info(self._indent() + f"[LLM <] {llm.model}, current_try: {current_try}, tools={tools}, messages={inputs}")
+        logger.info(self._indent() + f"[LLM <] {llm.model}, current_try: {current_try}, tools={tools}, messages={messages}")
 
     def end_llm_trace(self, completion=None, error_msg=None):
         if error_msg:
             logger.error(self._indent() + f"[LLM COMPLETION ERROR] {error_msg}")
             return
-        from bpm_ai_core.llm.common.message import ToolCallsMessage
-        tool_calls = ([{"function": {"name": c.name, "arguments": c.payload_dict()}} for c in completion.tool_calls]
-                      if isinstance(completion, ToolCallsMessage) else [])
-        logger.info(self._indent() + f"[LLM >] {completion.content}, tool_calls: {tool_calls}")
+        logger.info(self._indent() + f"[LLM >] {completion}")
 
     def start_tool_trace(self, tool, inputs):
         logger.info(self._indent() + f"[TOOL] {tool.name}({inputs})")

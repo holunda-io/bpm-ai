@@ -1,0 +1,8 @@
+[# system #]
+{{input | json}}
+
+[# user #]
+{{input | markdown}}
+
+[# assistant #]
+{{input | xml("input")}}

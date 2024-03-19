@@ -19,10 +19,10 @@ class ChatMessage(BaseModel):
     or a dict for prediction with output schema.
     """
 
-    role: Literal["system", "user", "assistant", "function"]
+    role: Literal["system", "user", "assistant", "tool"]
     """
     The role of the messages author.
-    One of `system`, `user`, `assistant`, or `function`.
+    One of `system`, `user`, `assistant`, or `tool`.
     """
 
     name: Optional[str] = None
@@ -33,7 +33,17 @@ class ChatMessage(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
-class SingleToolCallMessage(BaseModel):
+class SystemMessage(ChatMessage):
+
+    role: str = Field("system")
+
+
+class UserMessage(ChatMessage):
+
+    role: str = Field("user")
+
+
+class ToolCallMessage(BaseModel):
 
     id: str
 
@@ -59,10 +69,7 @@ class SingleToolCallMessage(BaseModel):
         else:
             raise Exception("Payload has unexpected type.")
 
-    def invoke(self):
-        return self.tool.callable(**self.payload_dict())
-
-    async def ainvoke(self) -> Any:
+    async def run_tool_function(self) -> Any:
         _callable = self.tool.callable
         inputs = self.payload_dict()
         Tracing.tracers().start_tool_trace(self.tool, inputs)
@@ -74,21 +81,6 @@ class SingleToolCallMessage(BaseModel):
         return result
 
 
-class ToolCallsMessage(ChatMessage):
-    role: str = Field("assistant")
-
-    tool_calls: List[SingleToolCallMessage]
-
-    def invoke_all(self) -> List[Any]:
-        return [t.invoke() for t in self.tool_calls]
-
-    async def ainvoke_all(self) -> List[Any]:
-        return [await t.ainvoke() for t in self.tool_calls]
-
-    async def ainvoke_all_parallel(self) -> List[Any]:
-        return await asyncio.gather(*[t.ainvoke() for t in self.tool_calls])
-
-
 class ToolResultMessage(ChatMessage):
 
     role: str = Field("tool")
@@ -98,3 +90,18 @@ class ToolResultMessage(ChatMessage):
     The id of the tool.
     """
 
+
+class AssistantMessage(ChatMessage):
+
+    role: str = Field("assistant")
+
+    tool_calls: List[ToolCallMessage] | None = None
+
+    def has_tool_calls(self) -> bool:
+        return self.tool_calls and len(self.tool_calls) > 0
+
+    async def run_all_tool_functions(self) -> List[Any]:
+        return [await t.run_tool_function() for t in self.tool_calls]
+
+    async def run_all_tool_functions_parallel(self) -> List[Any]:
+        return await asyncio.gather(*[t.run_tool_function() for t in self.tool_calls])

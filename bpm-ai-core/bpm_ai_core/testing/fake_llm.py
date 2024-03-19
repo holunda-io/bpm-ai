@@ -1,8 +1,9 @@
 from typing import List, Any
 
 from bpm_ai_core.llm.common.llm import LLM
-from bpm_ai_core.llm.common.message import ChatMessage, ToolCallsMessage, SingleToolCallMessage
+from bpm_ai_core.llm.common.message import ChatMessage, ToolCallMessage, AssistantMessage
 from bpm_ai_core.llm.common.tool import Tool
+from bpm_ai_core.tracing.tracing import Tracing
 
 
 def messages_to_str(messages: List[ChatMessage]) -> str:
@@ -10,7 +11,7 @@ def messages_to_str(messages: List[ChatMessage]) -> str:
 
 
 def tool_response(name, payload):
-    return ToolCallsMessage(tool_calls=[SingleToolCallMessage(id="fake", name=name, payload=payload)])
+    return AssistantMessage(tool_calls=[ToolCallMessage(id="fake", name=name, payload=payload)])
 
 
 class FakeLLM(LLM):
@@ -18,10 +19,10 @@ class FakeLLM(LLM):
 
     def __init__(
         self,
-        responses: list[ChatMessage] | None = None,
+        responses: list[AssistantMessage] | None = None,
         tools: list[list[Tool]] | None = None,
-        real_llm_delegate: LLM | None = None,
         supports_images: bool = False,
+        supports_video: bool = False,
         supports_audio: bool = False,
         name: str = "test-llm"
     ):
@@ -34,28 +35,31 @@ class FakeLLM(LLM):
         self.requests = []
 
         self._supports_images = supports_images
+        self._supports_video = supports_video
         self._supports_audio = supports_audio
 
-        self.real_llm_delegate = real_llm_delegate
-
-    async def _predict(
+    async def _generate_message(
         self, messages: list[ChatMessage],
         output_schema: dict[str, Any] | None = None,
-        tools: list[Tool] | None = None
-    ) -> ChatMessage:
+        tools: list[Tool] | None = None,
+        stop: list[str] = None,
+        current_try: int = None
+    ) -> AssistantMessage:
         self.requests += [messages]
         self.tools += [tools]
 
-        if self.real_llm_delegate:
-            response = self.real_llm_delegate._predict(messages, output_schema, tools)
-        elif self.responses:
+        Tracing.tracers().start_llm_trace(self, messages, current_try, tools)
+
+        if self.responses:
             response = self.responses[self.response_idx]
-            if isinstance(response, ToolCallsMessage):
+            if response.has_tool_calls():
                 for c in response.tool_calls:
                     c.tool = next((item for item in tools if item.name == c.name), None)
             self.response_idx += 1
         else:
             response = None
+
+        Tracing.tracers().end_llm_trace(response)
 
         return response
 
@@ -65,6 +69,9 @@ class FakeLLM(LLM):
     def assert_last_request_not_contains(self, text: str):
         assert text not in messages_to_str(self.requests[-1])
 
+    def assert_no_request(self):
+        assert len(self.requests) == 0
+
     def assert_last_request_defined_tool(self, tool_name: str, is_fixed_tool_choice: bool = False):
         assert tool_name in [f.name for f in self.tools[-1]]
         if is_fixed_tool_choice:
@@ -72,6 +79,9 @@ class FakeLLM(LLM):
 
     def supports_images(self) -> bool:
         return self._supports_images
+
+    def supports_video(self) -> bool:
+        return self._supports_video
 
     def supports_audio(self) -> bool:
         return self._supports_audio
