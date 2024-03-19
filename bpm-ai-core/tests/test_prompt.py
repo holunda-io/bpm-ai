@@ -116,12 +116,12 @@ def test_prompt_filter():
 
     assert messages[0].content == """\
 {
-    "text": "What is your name?",
-    "x": 42,
-    "address": {
-        "street": "Street",
-        "city": "City"
-    }
+  "text": "What is your name?",
+  "x": 42,
+  "address": {
+    "street": "Street",
+    "city": "City"
+  }
 }"""
 
     assert messages[1].content == """\
