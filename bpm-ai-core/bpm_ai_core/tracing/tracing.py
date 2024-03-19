@@ -2,7 +2,6 @@ import os
 from contextvars import ContextVar
 
 from bpm_ai_core.tracing.delegate import DelegateTracer
-
 from bpm_ai_core.tracing.tracer import Tracer
 
 _tracers: ContextVar[list[Tracer] | None] = ContextVar('tracers', default=None)

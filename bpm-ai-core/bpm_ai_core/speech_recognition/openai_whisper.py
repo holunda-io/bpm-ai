@@ -1,9 +1,8 @@
 import io
 import logging
-from typing import Optional, Union
+from typing import Optional
 
 from bpm_ai_core.speech_recognition.asr import ASRModel
-from bpm_ai_core.util.audio import load_audio
 
 logger = logging.getLogger(__name__)
 

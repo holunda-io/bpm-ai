@@ -1,6 +1,8 @@
 import os
-import requests
 import sys
+
+import requests
+
 
 def http_get(url, path):
     """

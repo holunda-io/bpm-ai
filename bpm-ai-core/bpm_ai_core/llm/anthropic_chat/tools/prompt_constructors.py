@@ -1,6 +1,3 @@
-import typing
-
-
 # This file contains prompt constructors for various pieces of code. Used primarily to keep other code legible.
 def construct_tool_use_system_prompt(tools):
     tool_use_system_prompt = (

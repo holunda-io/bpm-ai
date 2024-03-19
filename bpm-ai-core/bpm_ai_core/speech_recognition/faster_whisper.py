@@ -1,7 +1,6 @@
 import io
 
 from bpm_ai_core.speech_recognition.asr import ASRModel
-from bpm_ai_core.util.audio import load_audio
 
 try:
     from faster_whisper import WhisperModel
