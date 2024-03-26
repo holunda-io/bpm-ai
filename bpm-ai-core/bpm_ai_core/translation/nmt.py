@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
 from bpm_ai_core.tracing.decorators import span
-from bpm_ai_core.tracing.tracing import Tracing
 
 
 class NMTModel(ABC):

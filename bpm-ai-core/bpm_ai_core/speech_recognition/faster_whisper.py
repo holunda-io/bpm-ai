@@ -1,4 +1,5 @@
 import io
+
 from typing_extensions import override
 
 from bpm_ai_core.speech_recognition.asr import ASRModel

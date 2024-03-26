@@ -1,5 +1,6 @@
 import logging
 import os
+
 from typing_extensions import override
 
 from bpm_ai_core.translation.nmt import NMTModel

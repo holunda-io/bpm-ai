@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 from typing import Optional, Union
 
 from bpm_ai_core.tracing.decorators import span
-from bpm_ai_core.tracing.tracing import Tracing
 from bpm_ai_core.util.audio import load_audio
 
 

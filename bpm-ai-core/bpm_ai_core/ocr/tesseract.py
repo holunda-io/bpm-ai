@@ -1,10 +1,9 @@
 import logging
 import os
 import urllib
-from io import BytesIO
-from typing_extensions import override
 
 from PIL import Image
+from typing_extensions import override
 
 from bpm_ai_core.llm.common.blob import Blob
 from bpm_ai_core.ocr.ocr import OCR, OCRResult, OCRPage

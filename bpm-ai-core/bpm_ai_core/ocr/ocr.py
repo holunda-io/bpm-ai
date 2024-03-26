@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Tuple
+
 from pydantic import BaseModel, Field
 
 from bpm_ai_core.llm.common.blob import Blob

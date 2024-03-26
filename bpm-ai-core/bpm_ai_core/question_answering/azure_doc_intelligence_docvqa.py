@@ -2,6 +2,7 @@ import logging
 import os
 import re
 from io import BytesIO
+
 from typing_extensions import override
 
 from bpm_ai_core.llm.common.blob import Blob

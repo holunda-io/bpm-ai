@@ -1,9 +1,8 @@
-import contextlib
 import mimetypes
 import os
-from io import BytesIO, BufferedReader
+from io import BytesIO
 from pathlib import PurePath
-from typing import Union, Optional, Dict, Any, Self, cast, Generator
+from typing import Union, Optional, Dict, Any, Self, cast
 
 import requests
 from pydantic import BaseModel, Field, model_validator

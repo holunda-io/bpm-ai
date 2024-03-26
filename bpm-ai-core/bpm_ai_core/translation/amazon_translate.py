@@ -1,7 +1,7 @@
 import asyncio
-from typing_extensions import override
-
 from typing import List
+
+from typing_extensions import override
 
 from bpm_ai_core.translation.nmt import NMTModel
 
