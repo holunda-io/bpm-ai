@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+from bpm_ai_core.tracing.decorators import span
 from bpm_ai_core.tracing.tracing import Tracing
 
 
@@ -9,14 +10,9 @@ class NMTModel(ABC):
     """
 
     @abstractmethod
-    def _translate(self, text: str | list[str], target_language: str) -> str | list[str]:
+    async def _do_translate(self, text: str | list[str], target_language: str) -> str | list[str]:
         pass
 
-    def translate(self, text: str | list[str], target_language: str) -> str | list[str]:
-        Tracing.tracers().start_span("nmt", inputs={
-            "text": text,
-            "target_language": target_language
-        })
-        translation = self._translate(text, target_language)
-        Tracing.tracers().end_span(outputs={"translation": translation})
-        return translation
+    @span(name="nmt")
+    async def translate(self, text: str | list[str], target_language: str) -> str | list[str]:
+        return await self._do_translate(text, target_language)

@@ -1,14 +1,24 @@
 from abc import ABC, abstractmethod
+from typing import Tuple
+from pydantic import BaseModel, Field
 
-from PIL.Image import Image
-from pydantic import BaseModel
+from bpm_ai_core.llm.common.blob import Blob
+from bpm_ai_core.tracing.decorators import span
 
-from bpm_ai_core.tracing.tracing import Tracing
-from bpm_ai_core.util.image import load_images
+
+class OCRPage(BaseModel):
+    text: str
+    words: list[str] = Field(..., exclude=True)
+    bboxes: list[Tuple[float, float, float, float]] = Field(..., exclude=True)
+    """Format: (x, y, x + w, y + h), normalized to 1"""
 
 
 class OCRResult(BaseModel):
-    texts: list[str]
+    pages: list[OCRPage]
+
+    @property
+    def full_text(self) -> str:
+        return "\n".join([p.text for p in self.pages])
 
 
 class OCR(ABC):
@@ -17,31 +27,24 @@ class OCR(ABC):
     """
 
     @abstractmethod
-    async def images_to_text_with_metadata(
+    async def _do_process(
             self,
-            images: list[Image],
+            blob: Blob,
             language: str = None
     ) -> OCRResult:
         pass
 
-    async def images_to_text(
+    @span(name="ocr")
+    async def process(
             self,
-            image_or_path: Image | list[Image] | str,
+            blob_or_path: Blob | str,
             language: str = None
-    ) -> str:
-        Tracing.tracers().start_span("ocr", inputs={
-            "image": image_or_path,
-            "language": language
-        })
-        if isinstance(image_or_path, str):
-            images = load_images(image_or_path)
-        elif isinstance(image_or_path, Image):
-            images = [image_or_path]
-        else:  # list[Image]
-            images = image_or_path
-        result = await self.images_to_text_with_metadata(
-            images=images,
+    ) -> OCRResult:
+        if isinstance(blob_or_path, str):
+            blob = Blob.from_path_or_url(blob_or_path)
+        else:  # Blob
+            blob = blob_or_path
+        return await self._do_process(
+            blob=blob,
             language=language
         )
-        Tracing.tracers().end_span(outputs={"result": result.model_dump()})
-        return "\n".join(result.texts)

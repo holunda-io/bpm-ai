@@ -1,6 +1,7 @@
 import io
 import logging
 from typing import Optional
+from typing_extensions import override
 
 from bpm_ai_core.speech_recognition.asr import ASRModel
 
@@ -39,7 +40,8 @@ class OpenAIWhisperASR(ASRModel):
             raise ImportError('openai is not installed')
         self.whisper_model = whisper_model
 
-    async def _transcribe(self, audio: io.BytesIO, language: Optional[str] = None) -> str:
+    @override
+    async def _do_transcribe(self, audio: io.BytesIO, language: Optional[str] = None) -> str:
         transcript = await client.audio.transcriptions.create(
             model=self.whisper_model,
             file=audio,

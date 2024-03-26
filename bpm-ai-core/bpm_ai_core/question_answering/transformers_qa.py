@@ -1,7 +1,7 @@
 import logging
+from typing_extensions import override
 
-from PIL.Image import Image
-
+from bpm_ai_core.llm.common.blob import Blob
 from bpm_ai_core.question_answering.question_answering import QuestionAnswering, QAResult
 
 try:
@@ -25,13 +25,16 @@ class TransformersExtractiveQA(QuestionAnswering):
             raise ImportError('transformers is not installed')
         self.model = model
 
-    def answer_with_metadata(
+    @override
+    async def _do_answer(
             self,
-            context: str | Image,
+            context_str_or_blob: str | Blob,
             question: str
     ) -> QAResult:
-        if not isinstance(context, str):
+        if not isinstance(context_str_or_blob, str):
             raise Exception('TransformersExtractiveQA only supports string input')
+        else:
+            context = context_str_or_blob
 
         qa_model = pipeline("question-answering", model=self.model)
 

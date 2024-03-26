@@ -3,19 +3,19 @@ import inspect
 import json
 from typing import Optional, Literal, Any, Union, List
 
-from PIL import Image
 from pydantic import BaseModel, Field, ConfigDict
 
+from bpm_ai_core.llm.common.blob import Blob
 from bpm_ai_core.llm.common.tool import Tool
 from bpm_ai_core.tracing.tracing import Tracing
 
 
 class ChatMessage(BaseModel):
-    content: Optional[Union[str, dict, List[Union[str, Image.Image]]]] = None
+    content: Optional[Union[str, dict, List[Union[str, Blob]]]] = None
     """
     The contents of the message. 
     Either a string for normal completions, 
-    or a list of strings and images for multimodal completions, 
+    or a list of strings and blobs for multimodal completions, 
     or a dict for prediction with output schema.
     """
 

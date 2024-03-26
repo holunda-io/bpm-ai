@@ -2,6 +2,7 @@ from pathlib import Path
 
 from PIL.Image import Image
 
+from bpm_ai_core.llm.common.blob import Blob
 from bpm_ai_core.prompt.prompt import Prompt
 from bpm_ai_core.llm.common.message import ToolResultMessage, AssistantMessage, SystemMessage, UserMessage
 
@@ -18,13 +19,14 @@ def test_prompt_format():
 
     # [# system #]
     # You are a smart assistant.
-    # [# image {{image_url}} #]
+    # [# blob {{image_url}} #]
     # Go!
     assert isinstance(messages[0], SystemMessage)
     assert messages[0].role == "system"
     assert isinstance(messages[0].content, list)
     assert messages[0].content[0] == "You are a smart assistant."
-    assert isinstance(messages[0].content[1], Image)
+    assert isinstance(messages[0].content[1], Blob)
+    assert messages[0].content[1].is_image()
     assert messages[0].content[2] == "Go!"
 
     # [# user #]
@@ -92,13 +94,14 @@ def test_prompt_format():
 
     # [# user #]
     # Here is an image:
-    # [# image {{image_url}} #]
+    # [# blob {{image_url}} #]
     # {{task}}
     assert isinstance(messages[8], UserMessage)
     assert messages[8].role == "user"
     assert isinstance(messages[8].content, list)
     assert messages[8].content[0] == "Here is an image:"
-    assert isinstance(messages[8].content[1], Image)
+    assert isinstance(messages[0].content[1], Blob)
+    assert messages[0].content[1].is_image()
     assert messages[8].content[2] == "Do the task"
 
 

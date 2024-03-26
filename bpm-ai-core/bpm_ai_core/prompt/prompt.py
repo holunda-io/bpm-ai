@@ -5,10 +5,10 @@ from typing import List, Dict, Any
 
 from jinja2 import Template, environment
 
+from bpm_ai_core.llm.common.blob import Blob
 from bpm_ai_core.llm.common.message import ChatMessage, AssistantMessage, ToolResultMessage, ToolCallMessage, \
     UserMessage, SystemMessage
 from bpm_ai_core.prompt.filters import dict_to_markdown, dict_to_xml, dict_to_json
-from bpm_ai_core.util.image import load_images
 
 environment.DEFAULT_FILTERS['markdown'] = dict_to_markdown
 environment.DEFAULT_FILTERS['json'] = dict_to_json
@@ -43,7 +43,7 @@ class Prompt:
         full_prompt = template.render(self.template_vars)
 
         regex = r'\[#\s*(user|assistant|system|tool_result:.*|)\s*#\]'
-        image_regex = r'\[#\s*image\s*(.*?)\s*#\]'
+        blob_regex = r'\[#\s*blob\s*(.*?)\s*#\]'
         tool_call_regex = r'\[#\s*tool_call:\s*(.*?)\s*#\]'
 
         # Check if the raw template contains message prompt sections
@@ -65,21 +65,23 @@ class Prompt:
                 content_parts = []
                 tool_calls = []
 
-                # todo can't use images and call tools at the same time right now (isn't possible right now anyway)
-                # Check for images in the content and replace with Image objects
-                if re.search(image_regex, content):
+                # todo can't use images and call tools at the same time right now
+                # Check for blobs (images, videos, ...) in the content and replace with Blob objects
+                if re.search(blob_regex, content):
                     start = 0
-                    for match in re.finditer(image_regex, content):
-                        # Add the text before the image
+                    for match in re.finditer(blob_regex, content):
+                        # Add the text before the blob
                         before_text = content[start:match.start()].strip()
                         if before_text:
                             content_parts.append(before_text)
-                        # Add the image
-                        image_url = match.group(1)
-                        content_parts.extend(load_images(image_url))
+                        # Add the blob
+                        blob_url = match.group(1)
+                        content_parts.append(
+                            Blob.from_path_or_url(blob_url)
+                        )
                         start = match.end()
 
-                    # Add the remaining text after the last image
+                    # Add the remaining text after the last blob
                     content_parts.append(content[start:].strip())
 
                 # Check for tool calls in the content

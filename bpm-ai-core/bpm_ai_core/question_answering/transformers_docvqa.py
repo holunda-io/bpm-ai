@@ -1,8 +1,9 @@
 import logging
+from typing_extensions import override
 
-from PIL.Image import Image
-
+from bpm_ai_core.llm.common.blob import Blob
 from bpm_ai_core.question_answering.question_answering import QuestionAnswering, QAResult
+from bpm_ai_core.util.image import blob_as_images
 
 try:
     from transformers import pipeline, AutoTokenizer, DocumentQuestionAnsweringPipeline
@@ -12,6 +13,8 @@ except ImportError:
     has_transformers = False
 
 logger = logging.getLogger(__name__)
+
+IMAGE_FORMATS = ["png", "jpeg"]
 
 
 class TransformersDocVQA(QuestionAnswering):
@@ -26,19 +29,24 @@ class TransformersDocVQA(QuestionAnswering):
             raise ImportError('transformers is not installed')
         self.model = model
 
-    def answer_with_metadata(
+    @override
+    async def _do_answer(
             self,
-            context: str | Image,
+            context_str_or_blob: str | Blob,
             question: str
     ) -> QAResult:
-        if not isinstance(context, Image):
-            raise Exception('TransformersExtractiveDocVQA only supports image input')
+        if isinstance(context_str_or_blob, str) or not (context_str_or_blob.is_image() or context_str_or_blob.is_pdf()):
+            raise Exception('TransformersExtractiveDocVQA only supports image or PDF input')
+        images = await blob_as_images(context_str_or_blob, accept_formats=IMAGE_FORMATS)
+
+        if len(images) > 1:
+            logger.warning('Multiple images provided, using only first image.')
 
         qa_model = pipeline("document-question-answering", model=self.model)
 
         prediction = qa_model(
             question=question,
-            image=context
+            image=images[0]
         )[0]
         logger.debug(f"prediction: {prediction}")
 

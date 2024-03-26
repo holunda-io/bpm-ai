@@ -1,8 +1,9 @@
 import logging
+from typing_extensions import override
 
-from PIL.Image import Image
-
+from bpm_ai_core.llm.common.blob import Blob
 from bpm_ai_core.question_answering.question_answering import QuestionAnswering, QAResult
+from bpm_ai_core.util.image import blob_as_images
 
 try:
     from transformers import pipeline, AutoTokenizer, DocumentQuestionAnsweringPipeline, \
@@ -14,6 +15,8 @@ except ImportError:
     has_transformers = False
 
 logger = logging.getLogger(__name__)
+
+IMAGE_FORMATS = ["png", "jpeg"]
 
 
 class Pix2StructVQA(QuestionAnswering):
@@ -31,24 +34,23 @@ class Pix2StructVQA(QuestionAnswering):
             raise ImportError('transformers is not installed')
         self.model = model
 
-    def answer_with_metadata(
+    @override
+    async def _do_answer(
             self,
-            context: str | Image,
+            context_str_or_blob: str | Blob,
             question: str
     ) -> QAResult:
-        if not isinstance(context, Image):
-            raise Exception('Pix2StructVQA only supports image input')
+        if isinstance(context_str_or_blob, str) or not (context_str_or_blob.is_image() or context_str_or_blob.is_pdf()):
+            raise Exception('Pix2StructVQA only supports image or PDF input')
+        images = await blob_as_images(context_str_or_blob, accept_formats=IMAGE_FORMATS)
 
         pix2Struct = Pix2StructForConditionalGeneration.from_pretrained(self.model)
         pix2Struct.config.vocab_size = 50244
         processor = Pix2StructProcessor.from_pretrained(self.model)
 
-        inputs = processor(images=context, text=question, return_tensors="pt")
+        inputs = processor(images=images, text=question, return_tensors="pt")
         predictions = pix2Struct.generate(**inputs, return_dict_in_generate=True, output_scores=True)
         prediction = processor.decode(predictions.sequences[0], skip_special_tokens=True)
-
-        transition_scores = pix2Struct.compute_transition_scores(predictions.sequences, predictions.scores, normalize_logits=True)
-        transition_proba = torch.exp(transition_scores)[0]
 
         logger.debug(f"prediction: {prediction}")
 

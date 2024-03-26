@@ -1,4 +1,4 @@
-from bpm_ai_core.util.json import expand_simplified_json_schema
+from bpm_ai_core.util.json_schema import expand_simplified_json_schema
 
 
 def test_json_schema_1():

@@ -1,6 +1,6 @@
 [# system #]
 You are a smart assistant.
-[# image {{image_url}} #]
+[# blob {{image_url}} #]
 Go!
 
 [# user #]
@@ -34,5 +34,5 @@ That's that.
 
 [# user #]
 Here is an image:
-[# image {{image_url}} #]
+[# blob {{image_url}} #]
 {{task}}

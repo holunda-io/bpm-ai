@@ -1,6 +1,8 @@
 import inspect
 from functools import wraps
 
+from pydantic import BaseModel
+
 from bpm_ai_core.tracing.tracing import Tracing
 
 
@@ -10,12 +12,17 @@ def trace(name: str = None, tags: list[str] = None):
         async def wrapper(*args, **kwargs):
             trace_name = func.__name__ if name is None else name
             params = inspect.signature(func).parameters
-            inputs = {**{list(params.keys())[i]: arg for i, arg in enumerate(args)}, **kwargs}
+            inputs = {**{list(params.keys())[i]: arg for i, arg in enumerate(args) if list(params.keys())[i] != 'self'}, **kwargs}
             Tracing.tracers().start_trace(trace_name, inputs, tags or [])
             try:
-                result = await func(*args, **kwargs)
+                if inspect.iscoroutinefunction(func):
+                    result = await func(*args, **kwargs)
+                else:
+                    result = func(*args, **kwargs)
                 if isinstance(result, dict):
                     outputs = result
+                elif isinstance(result, BaseModel):
+                    outputs = result.model_dump()
                 else:
                     outputs = {'output': result}
                 Tracing.tracers().end_trace(outputs)
@@ -30,15 +37,20 @@ def trace(name: str = None, tags: list[str] = None):
 def span(name: str = None):
     def decorator(func):
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        async def wrapper(*args, **kwargs):
             span_name = func.__name__ if name is None else name
             params = inspect.signature(func).parameters
-            inputs = {**{list(params.keys())[i]: arg for i, arg in enumerate(args)}, **kwargs}
+            inputs = {**{list(params.keys())[i]: arg for i, arg in enumerate(args) if list(params.keys())[i] != 'self'}, **kwargs}
             Tracing.tracers().start_span(span_name, inputs)
             try:
-                result = func(*args, **kwargs)
+                if inspect.iscoroutinefunction(func):
+                    result = await func(*args, **kwargs)
+                else:
+                    result = func(*args, **kwargs)
                 if isinstance(result, dict):
                     outputs = result
+                elif isinstance(result, BaseModel):
+                    outputs = result.model_dump()
                 else:
                     outputs = {'output': result}
                 Tracing.tracers().end_span(outputs)

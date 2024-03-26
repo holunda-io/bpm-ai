@@ -3,7 +3,7 @@ from typing import Any, Optional, Dict, Callable, Type, Union
 
 from pydantic import BaseModel, validate_call, create_model
 
-from bpm_ai_core.util.json import expand_simplified_json_schema
+from bpm_ai_core.util.json_schema import expand_simplified_json_schema
 
 
 def _create_subset_model(

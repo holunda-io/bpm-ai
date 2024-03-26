@@ -1,5 +1,4 @@
 from bpm_ai_core.speech_recognition.faster_whisper import FasterWhisperASR
-from bpm_ai_core.speech_recognition.openai_whisper import OpenAIWhisperASR
 
 
 async def test_faster_whisper():

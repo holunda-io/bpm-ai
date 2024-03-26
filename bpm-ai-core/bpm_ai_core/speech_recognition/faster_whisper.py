@@ -1,4 +1,5 @@
 import io
+from typing_extensions import override
 
 from bpm_ai_core.speech_recognition.asr import ASRModel
 
@@ -31,6 +32,7 @@ class FasterWhisperASR(ASRModel):
             compute_type=compute_type
         )
 
-    async def _transcribe(self, audio: io.BytesIO, language: str = None) -> str:
+    @override
+    async def _do_transcribe(self, audio: io.BytesIO, language: str = None) -> str:
         segments, info = self.model.transcribe(audio, language=language)
         return "".join([s.text for s in list(segments)])

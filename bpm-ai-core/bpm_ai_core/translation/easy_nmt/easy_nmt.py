@@ -117,7 +117,7 @@ class EasyNMT(NMTModel):
                 self.translator = OpusMT(easynmt_path=model_path, **self.config['model_args'])
                 self.translator.max_length = max_length
 
-    def _translate(self, text: str | list[str], target_language: str) -> str | list[str]:
+    async def _do_translate(self, text: str | list[str], target_language: str) -> str | list[str]:
         if isinstance(text, str):
             return self.do_translate(text, target_language, indentify_language(text))
         else:
@@ -356,13 +356,13 @@ class EasyNMT(NMTModel):
             batch.append(doc)
 
             if len(batch) >= chunk_size:
-                translated = self.do_translate(batch, show_progress_bar=False, **kwargs)
+                translated = self._do_translate(batch, show_progress_bar=False, **kwargs)
                 for trans_doc in translated:
                     yield trans_doc
                 batch = []
 
         if len(batch) > 0:
-            translated = self.do_translate(batch, show_progress_bar=False, **kwargs)
+            translated = self._do_translate(batch, show_progress_bar=False, **kwargs)
             for trans_doc in translated:
                 yield trans_doc
 

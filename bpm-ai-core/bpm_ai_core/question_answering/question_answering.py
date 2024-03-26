@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 
-from PIL.Image import Image
 from pydantic import BaseModel
 
-from bpm_ai_core.tracing.tracing import Tracing
+from bpm_ai_core.llm.common.blob import Blob
+from bpm_ai_core.tracing.decorators import span
 
 
 class QAResult(BaseModel):
@@ -19,30 +19,25 @@ class QuestionAnswering(ABC):
     """
 
     @abstractmethod
-    def answer_with_metadata(
+    async def _do_answer(
             self,
-            context: str | Image,
+            context_str_or_blob: str | Blob,
             question: str
     ) -> QAResult:
         pass
 
-    def answer(
+    @span(name="qa")
+    async def answer(
             self,
-            context: str | Image,
+            context_str_or_blob: str | Blob,
             question: str,
             confidence_threshold: float | None = 0.1
-    ) -> str:
-        Tracing.tracers().start_span("qa", inputs={
-            "context": context,
-            "question": question,
-            "confidence_threshold": confidence_threshold
-        })
-        result = self.answer_with_metadata(
-            context=context,
+    ) -> QAResult | None:
+        result = await self._do_answer(
+            context_str_or_blob=context_str_or_blob,
             question=question
         )
-        Tracing.tracers().end_span(outputs={"result": result.model_dump()})
         # Only return the answer if the score is above the threshold (if given)
-        return result.answer \
+        return result \
             if not confidence_threshold or result.score > confidence_threshold \
             else None
