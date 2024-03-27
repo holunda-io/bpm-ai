@@ -1,4 +1,3 @@
-import mimetypes
 import os
 from io import BytesIO
 from pathlib import PurePath
@@ -7,6 +6,7 @@ from typing import Union, Optional, Dict, Any, Self, cast
 import requests
 from pydantic import BaseModel, Field, model_validator
 
+from bpm_ai_core.util.file import guess_mimetype
 from bpm_ai_core.util.storage import read_file_from_azure_blob, read_file_from_s3, is_s3_url, is_azure_blob_url
 
 
@@ -122,7 +122,7 @@ class Blob(BaseModel):
             Blob instance
         """
         if mime_type is None and guess_type:
-            _mimetype = mimetypes.guess_type(path)[0] if guess_type else None
+            _mimetype = guess_mimetype(path) if guess_type else None
         else:
             _mimetype = mime_type
 

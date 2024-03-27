@@ -8,31 +8,34 @@ from typing import Union, Tuple
 from PIL import Image, ImageDraw
 from pdf2image import convert_from_path, convert_from_bytes
 
-from bpm_ai_core.llm.common.blob import Blob
-from bpm_ai_core.util.file import is_supported_file
-
 logger = logging.getLogger(__name__)
 
-supported_img_extensions = [
-    'bmp', 'dib',
-    'gif',
-    'icns', 'ico',
-    'jfif', 'jpe', 'jpeg', 'jpg',
-    'j2c', 'j2k', 'jp2', 'jpc', 'jpf', 'jpx',
-    'apng', 'png',
-    'pbm', 'pgm', 'pnm', 'ppm',
-    'tif', 'tiff',
-    'webp',
-    'emf', 'wmf',
-    'pdf'
-]
+
+image_ext_map = {
+    'bmp': 'image/bmp',
+    'gif': 'image/gif',
+    'icns': 'image/x-icns',
+    'ico': 'image/x-icon',
+    'jfif': 'image/jpeg',
+    'jpe': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'jpg': 'image/jpeg',
+    'png': 'image/png',
+    'pbm': 'image/x-portable-bitmap',
+    'pgm': 'image/x-portable-graymap',
+    'pnm': 'image/x-portable-anymap',
+    'ppm': 'image/x-portable-pixmap',
+    'tif': 'image/tiff',
+    'tiff': 'image/tiff',
+    'webp': 'image/webp',
+}
+
+pdf_ext_map = {
+    'pdf': 'application/pdf'
+}
 
 
-def is_supported_img_file(url_or_path: str) -> bool:
-    return is_supported_file(url_or_path, supported_extensions=supported_img_extensions)
-
-
-async def blob_as_images(blob: Blob, accept_formats: list[str], return_bytes: bool = False) -> Union[list[Image.Image], list[bytes]]:
+async def blob_as_images(blob, accept_formats: list[str], return_bytes: bool = False) -> Union[list[Image.Image], list[bytes]]:
     """
     Load an image, PDF, or other file in a Blob into a Pillow Image object or raw bytes of accepted format.
 

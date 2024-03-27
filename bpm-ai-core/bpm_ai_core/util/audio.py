@@ -3,15 +3,18 @@ import os
 
 import requests
 
-from bpm_ai_core.util.file import is_supported_file
 
-supported_audio_extensions = [
-   "flac", "mp3", "mp4", "mpeg", "mpga", "m4a", "ogg", "wav2", "webm"
-]
-
-
-def is_supported_audio_file(url_or_path: str) -> bool:
-    return is_supported_file(url_or_path, supported_extensions=supported_audio_extensions)
+audio_ext_map = {
+    'flac': 'audio/flac',
+    'mp3': 'audio/mpeg',
+    'mp4': 'audio/mpeg',
+    'mpeg': 'audio/mpeg',
+    'mpga': 'audio/mpeg',
+    'm4a': 'audio/mpeg',
+    'ogg': 'audio/ogg',
+    'wav': 'audio/vnd.wav',
+    'webm': 'audio/webm',
+}
 
 
 def load_audio(path: str) -> io.BytesIO:
@@ -28,7 +31,7 @@ def load_audio(path: str) -> io.BytesIO:
         # Handle web URL
         response = requests.get(path)
         audio = io.BytesIO(response.content)
-        if path.endswith(tuple(supported_audio_extensions)):
+        if path.endswith(tuple(audio_ext_map.keys())):
             audio.name = f"audio.{path.rsplit('.', 1)[-1]}"
     elif os.path.isfile(path):
         # Handle local file path
