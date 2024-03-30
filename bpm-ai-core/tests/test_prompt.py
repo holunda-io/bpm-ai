@@ -1,10 +1,8 @@
 from pathlib import Path
 
-from PIL.Image import Image
-
 from bpm_ai_core.llm.common.blob import Blob
-from bpm_ai_core.prompt.prompt import Prompt
 from bpm_ai_core.llm.common.message import ToolResultMessage, AssistantMessage, SystemMessage, UserMessage
+from bpm_ai_core.prompt.prompt import Prompt
 
 
 def test_prompt_format():

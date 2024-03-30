@@ -3,7 +3,6 @@ import os
 
 import requests
 
-
 audio_ext_map = {
     'flac': 'audio/flac',
     'mp3': 'audio/mpeg',

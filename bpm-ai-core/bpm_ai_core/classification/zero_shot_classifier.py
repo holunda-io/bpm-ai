@@ -3,7 +3,7 @@ from typing import Tuple
 
 from pydantic import BaseModel
 
-from bpm_ai_core.tracing.tracing import Tracing
+from bpm_ai_core.tracing.decorators import span
 
 
 class ClassificationResult(BaseModel):
@@ -18,7 +18,7 @@ class ZeroShotClassifier(ABC):
     """
 
     @abstractmethod
-    def classify_with_metadata(
+    async def _do_classify(
             self,
             text: str,
             classes: list[str],
@@ -26,26 +26,20 @@ class ZeroShotClassifier(ABC):
     ) -> ClassificationResult:
         pass
 
-    def classify(
+    @span(name="classifier")
+    async def classify(
             self,
             text: str,
             classes: list[str],
             confidence_threshold: float | None = None,
             hypothesis_template: str | None = None
-    ) -> str:
-        Tracing.tracers().start_span("classification", inputs={
-            "text": text,
-            "classes": classes,
-            "confidence_threshold": confidence_threshold,
-            "hypothesis_template": hypothesis_template
-        })
-        result = self.classify_with_metadata(
+    ) -> ClassificationResult:
+        result = await self._do_classify(
             text=text,
             classes=classes,
             hypothesis_template=hypothesis_template
         )
-        Tracing.tracers().end_span(outputs={"result": result.model_dump()})
-        # Only return the label if the score is above the threshold (if given)
-        return result.max_label \
+        # Only return if the score is above the threshold (if given)
+        return result \
             if not confidence_threshold or result.max_score > confidence_threshold \
             else None
