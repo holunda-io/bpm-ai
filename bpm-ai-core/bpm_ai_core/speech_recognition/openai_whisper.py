@@ -4,7 +4,7 @@ from typing import Optional
 
 from typing_extensions import override
 
-from bpm_ai_core.speech_recognition.asr import ASRModel
+from bpm_ai_core.speech_recognition.asr import ASRModel, ASRResult
 
 logger = logging.getLogger(__name__)
 
@@ -42,10 +42,10 @@ class OpenAIWhisperASR(ASRModel):
         self.whisper_model = whisper_model
 
     @override
-    async def _do_transcribe(self, audio: io.BytesIO, language: Optional[str] = None) -> str:
+    async def _do_transcribe(self, audio: io.BytesIO, language: Optional[str] = None) -> ASRResult:
         transcript = await client.audio.transcriptions.create(
             model=self.whisper_model,
             file=audio,
             **{"language": language} if language else {}
         )
-        return transcript.text
+        return ASRResult(text=transcript.text)
