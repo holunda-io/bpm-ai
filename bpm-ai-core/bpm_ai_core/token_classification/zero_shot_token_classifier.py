@@ -1,11 +1,18 @@
 from abc import ABC, abstractmethod
-from typing import Tuple
 
 from pydantic import BaseModel
 
 
+class TokenSpan(BaseModel):
+    label: str
+    score: float
+    word: str
+    start: int
+    end: int
+
+
 class TokenClassificationResult(BaseModel):
-    tags: list[Tuple[str, str]]
+    spans: list[TokenSpan]
 
 
 class ZeroShotTokenClassifier(ABC):
