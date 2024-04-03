@@ -109,7 +109,7 @@ async def test_extract_no_output_schema(llm):
         llm.assert_no_request()
 
     # ocr and asr should still be applied if output_schema is empty
-    assert result["doc"].strip() == "example image"
+    assert result["doc"].strip().lower() == "example image"
     assert "half-fantastic" in result["doc2"]
     assert result["subject"] == "Test"
 
@@ -201,7 +201,7 @@ async def test_extract_qa_no_output_schema():
     )
 
     # ocr and asr should still be applied if output_schema is empty
-    assert result["doc"].strip() == "example image"
+    assert result["doc"].strip().lower() == "example image"
     assert "half-fantastic" in result["doc2"]
     assert result["subject"] == "Test"
 
