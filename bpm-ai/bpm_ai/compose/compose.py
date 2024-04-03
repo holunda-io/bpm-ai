@@ -2,17 +2,14 @@ import re
 from typing import TypedDict, Callable
 
 from bpm_ai_core.llm.common.llm import LLM
-from bpm_ai_core.llm.common.message import ToolCallsMessage
-from bpm_ai_core.llm.common.tool import Tool
 from bpm_ai_core.ocr.ocr import OCR
 from bpm_ai_core.prompt.prompt import Prompt
 from bpm_ai_core.speech_recognition.asr import ASRModel
 from bpm_ai_core.tracing.decorators import trace
 
 from bpm_ai.common.errors import MissingParameterError
-from bpm_ai.common.json_utils import json_to_md
-from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_images
-from bpm_ai.compose.util import remove_stop_words, type_to_prompt_type_str, decode_if_needed
+from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_documents
+from bpm_ai.compose.util import remove_stop_words, type_to_prompt_type_str
 
 TEMPLATE_VAR_PATTERN = r'\{\s*([^{}\s]+(?:\s*[^{}\s]+)*)\s*\}'
 
@@ -45,10 +42,10 @@ async def compose_llm(
     def format_vars(template: str, f: Callable[[str], str]):
         return re.sub(TEMPLATE_VAR_PATTERN, lambda m: f(m.group(1)), template)
 
-    if llm.supports_images():
+    if not ocr and llm.supports_images():
         input_data = prepare_images_for_llm_prompt(input_data)
     else:
-        input_data = await ocr_images(input_data, ocr)
+        input_data = await ocr_documents(input_data, ocr)
     input_data = await transcribe_audio(input_data, asr)
 
     # all variables found in the template
@@ -60,16 +57,9 @@ async def compose_llm(
     non_template_input_var_dict = {k: v for k, v in input_data.items() if k not in template_vars}
 
     if len(template_vars_to_generate_dict) > 0:
-        tool = Tool.from_callable(
-            "store_text",
-            "Stores composed text parts for template variables.",
-            args_schema=template_vars_to_generate_dict,
-            callable=lambda **x: x
-        )
-
         prompt = Prompt.from_file(
             "compose",
-            context=json_to_md(non_template_input_var_dict),
+            context=non_template_input_var_dict,
             # remove template braces from variables that are already present in the input to not confuse the model what to generate
             # we do not resolve these variables here to avoid sending that data to the API
             template=format_vars(template, lambda v: v if v in input_data.keys() else '{' + v + '}'),
@@ -80,14 +70,16 @@ async def compose_llm(
             lang=properties.get("language", "English")
         )
 
-        result = await llm.predict(prompt, tools=[tool])
+        compose_schema = {
+            "name": "store_text",
+            "description": "Stores composed text parts for template variables.",
+            "type": "object",
+            "properties": template_vars_to_generate_dict
+        }
 
-        if isinstance(result, ToolCallsMessage):
-            generated_vars = result.tool_calls[0].invoke()
-            # fix for encoding error in new OpenAI models API
-            generated_vars = {k: decode_if_needed(v) for k, v in generated_vars.items()}
-        else:
-            generated_vars = {}
+        message = await llm.generate_message(prompt, output_schema=compose_schema)
+
+        generated_vars = message.content or {}
     else:
         generated_vars = {}
 

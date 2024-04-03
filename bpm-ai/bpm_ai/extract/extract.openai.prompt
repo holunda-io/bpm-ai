@@ -12,7 +12,7 @@ If any property or information is not contained in or can't be deduced from the 
 
 [# user #]
 """
-{{input}}
+{{input | markdown}}
 """
 
 Remember: set properties to null if they are not present in or can't be deduced from the above passage!

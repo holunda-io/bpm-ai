@@ -2,16 +2,14 @@ from typing import Any
 
 from bpm_ai_core.classification.zero_shot_classifier import ZeroShotClassifier
 from bpm_ai_core.llm.common.llm import LLM
-from bpm_ai_core.llm.common.message import ToolCallsMessage
-from bpm_ai_core.llm.common.tool import Tool
 from bpm_ai_core.ocr.ocr import OCR
 from bpm_ai_core.prompt.prompt import Prompt
 from bpm_ai_core.speech_recognition.asr import ASRModel
 from bpm_ai_core.tracing.decorators import trace
+from bpm_ai_core.util.markdown import dict_to_md
 
 from bpm_ai.common.errors import MissingParameterError
-from bpm_ai.common.json_utils import json_to_md
-from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_images
+from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_documents
 from bpm_ai.decide.schema import get_cot_decision_output_schema, get_decision_output_schema
 
 
@@ -39,37 +37,31 @@ async def decide_llm(
     else:
         output_schema = get_decision_output_schema(output_type, possible_values)
 
-    store_decision_tool = Tool.from_callable(
-        "store_decision",
-        "Stores the final decision value and corresponding reasoning.",
-        args_schema=output_schema,
-        callable=lambda **x: x
-    )
-
-    if llm.supports_images():
+    if not ocr and llm.supports_images():
         input_data = prepare_images_for_llm_prompt(input_data)
     else:
-        input_data = await ocr_images(input_data, ocr)
-
+        input_data = await ocr_documents(input_data, ocr)
     input_data = await transcribe_audio(input_data, asr)
-
-    input_md = json_to_md(input_data).strip()
 
     prompt = Prompt.from_file(
         "decide",
-        context=input_md,
+        context=input_data,
         task=instructions,
         output_type=output_type,
         possible_values=possible_values,
         strategy=strategy
     )
 
-    result = await llm.predict(prompt, tools=[store_decision_tool])
+    decide_schema = {
+        "name": "store_decision",
+        "description": "Stores the final decision value and corresponding reasoning.",
+        "type": "object",
+        "properties": output_schema
+    }
 
-    if isinstance(result, ToolCallsMessage):
-        return result.tool_calls[0].invoke()
-    else:
-        return {}
+    message = await llm.generate_message(prompt, output_schema=decide_schema)
+
+    return message.content or {}
 
 
 @trace("bpm-ai-decide", ["classifier"])
@@ -93,20 +85,21 @@ async def decide_classifier(
     if all(value is None for value in input_data.values()):
         return {"decision": None, "reasoning": "No input values present."}
 
-    input_data = await ocr_images(input_data, ocr)
+    input_data = await ocr_documents(input_data, ocr)
     input_data = await transcribe_audio(input_data, asr)
 
-    input_md = json_to_md(input_data).strip()
+    input_md = dict_to_md(input_data).strip()
 
     hypothesis_template = "In this example the question '" + question + "' should be answered with '{}'" \
         if question else "This example is {}."
 
-    result_raw = classifier.classify(
+    classification = await classifier.classify(
         input_md,
         possible_values,
         hypothesis_template=hypothesis_template,
         confidence_threshold=0.1
     )
+    result_raw = classification.max_label
 
     if output_type == "boolean":
         result = (result_raw == 'yes') if result_raw else None

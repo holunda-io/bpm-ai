@@ -1,20 +1,20 @@
-from bpm_ai_core.ocr.tesseract import TesseractOCR
-from bpm_ai_core.question_answering.transformers_qa import TransformersExtractiveQA
-from bpm_ai_core.llm.openai_chat import ChatOpenAI
-from bpm_ai_core.speech_recognition.faster_whisper import FasterWhisperASR
-from bpm_ai_core.testing.fake_llm import FakeLLM, tool_response
+from bpm_ai_core.llm.common.message import AssistantMessage
+from bpm_ai_inference.classification.transformers_classifier import TransformersClassifier
+from bpm_ai_inference.ocr.tesseract import TesseractOCR
+from bpm_ai_inference.question_answering.transformers_qa import TransformersExtractiveQA
+from bpm_ai_inference.speech_recognition.faster_whisper import FasterWhisperASR
+from bpm_ai_core.testing.fake_llm import FakeLLM
+from bpm_ai_inference.token_classification.transformers_token_classifier import TransformersTokenClassifier
 
 from bpm_ai.extract.extract import extract_llm, extract_qa
 
 
-async def test_extract(use_real_llm=False):
-    llm = FakeLLM(
+async def test_extract(llm):
+    llm = llm or FakeLLM(
         name="openai",
-        real_llm_delegate=ChatOpenAI() if use_real_llm else None,
         responses=[
-            tool_response(
-                name="information_extraction",
-                payload='{"firstname": "John", "lastname": "Meier", "age": 30, "language": "de"}'
+            AssistantMessage(
+                content={"firstname": "John", "lastname": "Meier", "age": 30, "language": "de"}
             )
         ]
     )
@@ -28,8 +28,9 @@ async def test_extract(use_real_llm=False):
             "language": "the language the email is written in, as two-letter ISO code"
         }
     )
-    llm.assert_last_request_contains("John Meier")
-    llm.assert_last_request_defined_tool("information_extraction", is_fixed_tool_choice=True)
+
+    if isinstance(llm, FakeLLM):
+        llm.assert_last_request_contains("John Meier")
 
     assert result["firstname"] == "John"
     assert result["lastname"] == "Meier"
@@ -37,14 +38,12 @@ async def test_extract(use_real_llm=False):
     assert result["language"] == "de"
 
 
-async def test_extract_multiple(use_real_llm=False):
-    llm = FakeLLM(
+async def test_extract_multiple(llm):
+    llm = llm or FakeLLM(
         name="openai",
-        real_llm_delegate=ChatOpenAI() if use_real_llm else None,
         responses=[
-            tool_response(
-                name="information_extraction",
-                payload='{"entities": [{"firstname": "Jörg"}, {"firstname": "Mike"}, {"firstname": "Sepp"}]}'
+            AssistantMessage(
+                content={"entities": [{"firstname": "Jörg"}, {"firstname": "Mike"}, {"firstname": "Sepp"}]}
             )
         ]
     )
@@ -57,20 +56,21 @@ async def test_extract_multiple(use_real_llm=False):
         multiple=True,
         multiple_description="People"
     )
-    llm.assert_last_request_contains("Jörg, Mike und Sepp")
-    llm.assert_last_request_defined_tool("information_extraction", is_fixed_tool_choice=True)
+
+    if isinstance(llm, FakeLLM):
+        llm.assert_last_request_contains("Jörg, Mike und Sepp")
 
     assert result[0]["firstname"] == "Jörg"
     assert result[1]["firstname"] == "Mike"
     assert result[2]["firstname"] == "Sepp"
 
 
-async def test_extract_none():
+async def test_extract_none(llm):
     input_data = {
         "email": None,
         "subject": None
     }
-    llm = FakeLLM(name="openai")
+    llm = llm or FakeLLM(name="openai")
     result = await extract_llm(
         llm=llm,
         input_data=input_data,
@@ -80,21 +80,22 @@ async def test_extract_none():
     )
 
     # LLM should not be used if input is all None
-    llm.assert_no_request()
+    if isinstance(llm, FakeLLM):
+        llm.assert_no_request()
 
     assert result["email"] is None
     assert result["subject"] is None
 
 
-async def test_extract_no_output_schema():
+async def test_extract_no_output_schema(llm):
     input_data = {
-        "doc": "example.png",
-        "doc2": "test.mp3",
+        "doc": "example-text.png",
+        "doc2": "example.mp3",
         "subject": "Test"
     }
     output_schema = {}
 
-    llm = FakeLLM(name="openai")
+    llm = llm or FakeLLM(name="openai")
     result = await extract_llm(
         llm=llm,
         input_data=input_data,
@@ -104,7 +105,8 @@ async def test_extract_no_output_schema():
     )
 
     # LLM should not be used if output_schema is empty
-    llm.assert_no_request()
+    if isinstance(llm, FakeLLM):
+        llm.assert_no_request()
 
     # ocr and asr should still be applied if output_schema is empty
     assert result["doc"].strip() == "example image"
@@ -114,8 +116,12 @@ async def test_extract_no_output_schema():
 
 async def test_extract_qa():
     qa = TransformersExtractiveQA()
+    classifier = TransformersClassifier()
+    token_classifier = TransformersTokenClassifier()
     actual = await extract_qa(
         qa=qa,
+        classifier=classifier,
+        token_classifier=token_classifier,
         input_data={"email": "Hey it's me, John Meier. I live in Hamburg and I am 30 years old."},
         output_schema={
             "lastname": "What is the family name (not forename)?",
@@ -132,8 +138,12 @@ async def test_extract_qa():
 
 async def test_extract_qa_enum():
     qa = TransformersExtractiveQA()
+    classifier = TransformersClassifier()
+    token_classifier = TransformersTokenClassifier()
     actual = await extract_qa(
         qa=qa,
+        classifier=classifier,
+        token_classifier=token_classifier,
         input_data={"email": "Hey it's me, John Meier. I live in Hamburg and I am 30 years old."},
         output_schema={
             "name": "What is the customers full name?",
@@ -153,8 +163,12 @@ async def test_extract_qa_none():
         "subject": None
     }
     qa = TransformersExtractiveQA()
+    classifier = TransformersClassifier()
+    token_classifier = TransformersTokenClassifier()
     result = await extract_qa(
         qa=qa,
+        classifier=classifier,
+        token_classifier=token_classifier,
         input_data=input_data,
         output_schema={
             "firstname": "the firstname",
@@ -167,15 +181,19 @@ async def test_extract_qa_none():
 
 async def test_extract_qa_no_output_schema():
     input_data = {
-        "doc": "example.png",
-        "doc2": "test.mp3",
+        "doc": "example-text.png",
+        "doc2": "example.mp3",
         "subject": "Test"
     }
     output_schema = {}
 
     qa = TransformersExtractiveQA()
+    classifier = TransformersClassifier()
+    token_classifier = TransformersTokenClassifier()
     result = await extract_qa(
         qa=qa,
+        classifier=classifier,
+        token_classifier=token_classifier,
         input_data=input_data,
         output_schema=output_schema,
         ocr=TesseractOCR(),
@@ -190,13 +208,17 @@ async def test_extract_qa_no_output_schema():
 
 async def test_extract_ocr():
     qa = TransformersExtractiveQA()
+    classifier = TransformersClassifier()
+    token_classifier = TransformersTokenClassifier()
     ocr = TesseractOCR()
     actual = await extract_qa(
         qa=qa,
+        classifier=classifier,
+        token_classifier=token_classifier,
         ocr=ocr,
         input_data={
             "email": "Hey it's me, John Meier. I attached the invoice. Have a good one.",
-            "invoice": "sample-invoice.webp"
+            "invoice": "invoice-simple.webp"
         },
         output_schema={
             "invoice_number": "What is the invoice number?",
@@ -220,8 +242,12 @@ async def test_extract_qa_multiple():
     }
 
     qa = TransformersExtractiveQA()
+    classifier = TransformersClassifier()
+    token_classifier = TransformersTokenClassifier()
     actual = await extract_qa(
         qa=qa,
+        classifier=classifier,
+        token_classifier=token_classifier,
         input_data={"email": text},
         output_schema=schema,
         multiple=True,

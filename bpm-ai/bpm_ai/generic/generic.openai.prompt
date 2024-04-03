@@ -8,7 +8,7 @@ Perform the task based on the description and context information and store the 
 
 [# user #]
 # CONTEXT
-{{context}}
+{{context | markdown}}
 
 # TASK DESCRIPTION
 {{task}}

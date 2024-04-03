@@ -39,7 +39,7 @@ Decision stored, continue with next task.
 
 [# user #]
 # CONTEXT
-{{context}}
+{{context | markdown}}
 
 # DECISION TASK DESCRIPTION
 {{task}}

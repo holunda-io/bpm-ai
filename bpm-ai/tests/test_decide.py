@@ -1,42 +1,38 @@
-from bpm_ai_core.classification.transformers_classifier import TransformersClassifier
-from bpm_ai_core.llm.openai_chat import ChatOpenAI
-from bpm_ai_core.testing.fake_llm import FakeLLM, tool_response
+from bpm_ai_inference.classification.transformers_classifier import TransformersClassifier
+from bpm_ai_core.llm.common.message import AssistantMessage
+from bpm_ai_core.testing.fake_llm import FakeLLM
 
 from bpm_ai.decide.decide import decide_llm, decide_classifier
 
 
-async def test_decide(use_real_llm=False):
-    llm = FakeLLM(
+async def test_decide(llm):
+    llm = llm or FakeLLM(
         name="openai",
-        real_llm_delegate=ChatOpenAI() if use_real_llm else None,
         responses=[
-            tool_response(
-                name="store_decision",
-                payload='{"decision": "yup", "reasoning": null}'
-            )
+            AssistantMessage(content={"decision": "yup", "reasoning": ""})
         ]
     )
     result = await decide_llm(
         llm=llm,
-        input_data={"email": "Hey ich bins, der John Meier. Mein 30. Geburtstag war gut!"},
+        input_data={"email": "Hallo ich bins, der John Meier. Mein 30. Geburtstag war gut!"},
         instructions="Is the user older than 18 years?",
         strategy="cot",
         possible_values=["yup", "nope"],
         output_type="string"
     )
 
-    llm.assert_last_request_contains("John Meier")
-    llm.assert_last_request_defined_tool("store_decision", is_fixed_tool_choice=True)
+    if isinstance(llm, FakeLLM):
+        llm.assert_last_request_contains("John Meier")
 
     assert result["decision"] == "yup"
 
 
-async def test_decide_none():
+async def test_decide_none(llm):
     input_data = {
         "email": None,
         "subject": None
     }
-    llm = FakeLLM(name="openai")
+    llm = llm or FakeLLM(name="openai")
     result = await decide_llm(
         llm=llm,
         input_data=input_data,
@@ -45,7 +41,8 @@ async def test_decide_none():
     )
 
     # LLM should not be used if input is all None
-    llm.assert_no_request()
+    if isinstance(llm, FakeLLM):
+        llm.assert_no_request()
 
     assert result["decision"] is None
     assert result["reasoning"] == "No input values present."

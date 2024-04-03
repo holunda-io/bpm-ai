@@ -1,21 +1,20 @@
-from bpm_ai_core.llm.openai_chat import ChatOpenAI
+from bpm_ai_core.llm.common.message import ChatMessage, AssistantMessage
+from bpm_ai_core.llm.openai_chat.openai_chat import ChatOpenAI
 from bpm_ai_core.testing.fake_llm import FakeLLM, tool_response
 
 from bpm_ai.compose.compose import compose_llm
 
 
-async def test_compose(use_real_llm=False):
-    llm = FakeLLM(
+async def test_compose(llm):
+    llm = llm or FakeLLM(
         name="openai",
-        real_llm_delegate=ChatOpenAI() if use_real_llm else None,
         responses=[
-            tool_response(
-                name="store_text",
-                payload='{'
-                        '"greet_customer": "Hey Max", '
-                        '"thank_customer_mail": "Thanks for your mail", '
-                        '"answer_question_based_provided_answer": "Your order was shipped today!"'
-                        '}'
+            AssistantMessage(
+                content={
+                    "greet_customer": "Hey Max",
+                    "thank_customer_mail": "Thanks for your mail",
+                    "answer_question_based_provided_answer": "Your order was shipped today!"
+                }
             )
         ]
     )
@@ -37,17 +36,17 @@ async def test_compose(use_real_llm=False):
         }
     )
 
-    llm.assert_last_request_contains("Shipped today")
-    llm.assert_last_request_defined_tool("store_text", is_fixed_tool_choice=True)
+    if isinstance(llm, FakeLLM):
+        llm.assert_last_request_contains("Shipped today")
 
     assert "Max" in result["text"]
     assert "Lisa" in result["text"]
     assert "shipped" in result["text"]
 
 
-async def test_compose_empty_template():
+async def test_compose_empty_template(llm):
     template = ""
-    llm = FakeLLM(name="openai")
+    llm = llm or FakeLLM(name="openai")
     result = await compose_llm(
         llm=llm,
         input_data={"email": "Hey, where is my order? Max"},
@@ -63,6 +62,7 @@ async def test_compose_empty_template():
     )
 
     # LLM should not be used if template is empty
-    llm.assert_no_request()
+    if isinstance(llm, FakeLLM):
+        llm.assert_no_request()
 
     assert result["text"] == ""

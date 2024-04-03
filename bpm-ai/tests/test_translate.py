@@ -1,24 +1,22 @@
 import pytest
-from bpm_ai_core.llm.openai_chat import ChatOpenAI
-from bpm_ai_core.testing.fake_llm import FakeLLM, tool_response
-from bpm_ai_core.translation.easy_nmt.easy_nmt import EasyNMT
+from bpm_ai_core.llm.common.message import AssistantMessage
+from bpm_ai_core.testing.fake_llm import FakeLLM
+from bpm_ai_inference.translation.easy_nmt.easy_nmt import EasyNMT
 
 from bpm_ai.common.errors import MissingParameterError
 from bpm_ai.translate.translate import translate_llm, translate_nmt
 
 
-async def test_translate(use_real_llm=False):
+async def test_translate(llm):
     input_data = {
         "email": "Hey ich bins, der Jürgen. Ich habe ein neues Auto.",
         "subject": "Hallo!"
     }
-    llm = FakeLLM(
+    llm = llm or FakeLLM(
         name="openai",
-        real_llm_delegate=ChatOpenAI() if use_real_llm else None,
         responses=[
-            tool_response(
-                name="store_translation",
-                payload='{"email": "Hey it\'s me, Jürgen. I have a car.", "subject": "Hello!"}'
+            AssistantMessage(
+                content={"email": "Hey it\'s me, Jürgen. I have a new car.", "subject": "Hello!"}
             )
         ]
     )
@@ -28,25 +26,23 @@ async def test_translate(use_real_llm=False):
         target_language="English",
     )
 
-    llm.assert_last_request_contains("Jürgen")
-    llm.assert_last_request_defined_tool("store_translation", is_fixed_tool_choice=True)
+    if isinstance(llm, FakeLLM):
+        llm.assert_last_request_contains("Jürgen")
 
     assert "car" in result["email"]
     assert result["subject"] == "Hello!"
 
 
-async def test_translate_partial_none(use_real_llm=False):
+async def test_translate_partial_none(llm):
     input_data = {
         "email": None,
         "subject": "Hallo!"
     }
-    llm = FakeLLM(
+    llm = llm or FakeLLM(
         name="openai",
-        real_llm_delegate=ChatOpenAI() if use_real_llm else None,
         responses=[
-            tool_response(
-                name="store_translation",
-                payload='{"email": null, "subject": "Hello!"}'
+            AssistantMessage(
+                content={"email": None, "subject": "Hello!"}
             )
         ]
     )
@@ -56,20 +52,20 @@ async def test_translate_partial_none(use_real_llm=False):
         target_language="English",
     )
 
-    llm.assert_last_request_contains("subject")
-    llm.assert_last_request_not_contains("email")
-    llm.assert_last_request_defined_tool("store_translation", is_fixed_tool_choice=True)
+    if isinstance(llm, FakeLLM):
+        llm.assert_last_request_contains("subject")
+        llm.assert_last_request_not_contains("email")
 
     assert result["email"] is None
     assert result["subject"] == "Hello!"
 
 
-async def test_translate_none():
+async def test_translate_none(llm):
     input_data = {
         "email": None,
         "subject": None
     }
-    llm = FakeLLM(name="openai")
+    llm = llm or FakeLLM(name="openai")
     result = await translate_llm(
         llm=llm,
         input_data=input_data,
@@ -77,15 +73,16 @@ async def test_translate_none():
     )
 
     # LLM should not be used if input is all None
-    llm.assert_no_request()
+    if isinstance(llm, FakeLLM):
+        llm.assert_no_request()
 
     assert result["email"] is None
     assert result["subject"] is None
 
 
-async def test_translate_empty():
+async def test_translate_empty(llm):
     input_data = {}
-    llm = FakeLLM(name="openai")
+    llm = llm or FakeLLM(name="openai")
     result = await translate_llm(
         llm=llm,
         input_data=input_data,
@@ -93,17 +90,18 @@ async def test_translate_empty():
     )
 
     # LLM should not be used if input is empty
-    llm.assert_no_request()
+    if isinstance(llm, FakeLLM):
+        llm.assert_no_request()
 
     assert result == {}
 
 
-async def test_translate_no_language():
+async def test_translate_no_language(llm):
     input_data = {
         "email": "Hey",
         "subject": "Hallo"
     }
-    llm = FakeLLM(name="openai")
+    llm = llm or FakeLLM(name="openai")
     target_language = " "
 
     with pytest.raises(MissingParameterError):

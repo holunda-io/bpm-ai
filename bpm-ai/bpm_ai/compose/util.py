@@ -1,6 +1,4 @@
-import html
-
-from bpm_ai.compose.stopwords import stopwords
+from bpm_ai_core.util.linguistics import stopwords
 
 
 def remove_stop_words(sentence, separator=' ', max_n_result_words: int = 6):
@@ -22,12 +20,3 @@ def type_to_prompt_type_str(type: str) -> str:
             return "social media posts"
         case "text":
             return "texts"
-
-
-def decode_if_needed(text):
-    """fix for encoding errors in new OpenAI models API"""
-    text = html.unescape(text)
-    if '\\u' in text:
-        return text.encode().decode('unicode-escape')
-    else:
-        return text
