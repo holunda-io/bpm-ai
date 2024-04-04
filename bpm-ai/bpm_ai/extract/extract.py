@@ -1,7 +1,9 @@
+import itertools
 import re
 from typing import Callable, Any
 
 from bpm_ai_core.classification.zero_shot_classifier import ZeroShotClassifier
+from bpm_ai_core.llm.common.blob import Blob
 from bpm_ai_core.question_answering.question_answering import QuestionAnswering
 from bpm_ai_core.llm.common.llm import LLM
 from bpm_ai_core.ocr.ocr import OCR
@@ -9,11 +11,13 @@ from bpm_ai_core.prompt.prompt import Prompt
 from bpm_ai_core.speech_recognition.asr import ASRModel
 from bpm_ai_core.token_classification.zero_shot_token_classifier import ZeroShotTokenClassifier
 from bpm_ai_core.tracing.decorators import trace
+from bpm_ai_core.util.file import is_supported_img_file
 from bpm_ai_core.util.json_schema import expand_simplified_json_schema
 from bpm_ai_core.util.markdown import dict_to_md
 
 from bpm_ai.common.errors import MissingParameterError
 from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_documents
+from bpm_ai.extract.util import merge_dicts, strip_non_numeric_chars, create_json_object
 
 
 @trace("bpm-ai-extract", ["llm"])
@@ -70,18 +74,23 @@ async def extract_llm(
 async def extract_qa(
     qa: QuestionAnswering,
     classifier: ZeroShotClassifier,
-    token_classifier: ZeroShotTokenClassifier,
     input_data: dict[str, str | dict | None],
     output_schema: dict[str, str | dict],
     multiple: bool = False,
     multiple_description: str = "",
     ocr: OCR | None = None,
+    vqa: QuestionAnswering | None = None,
+    token_classifier: ZeroShotTokenClassifier | None = None,
     asr: ASRModel | None = None
 ) -> dict | list[dict]:
     if all(value is None for value in input_data.values()):
         return input_data
 
-    input_data = await ocr_documents(input_data, ocr)
+    if vqa:
+        input_img_data = {k: v for k, v in input_data.items() if (isinstance(v, str) and is_supported_img_file(v))}
+        input_data = {k: v for k, v in input_data.items() if k not in input_img_data.keys()}
+    else:
+        input_data = await ocr_documents(input_data, ocr)
     input_data = await transcribe_audio(input_data, asr)
 
     if not output_schema:
@@ -89,33 +98,6 @@ async def extract_qa(
 
     input_md = dict_to_md(input_data).strip()
     output_schema = expand_simplified_json_schema(output_schema)["properties"]
-
-    def strip_non_numeric_chars(s):
-        while len(s) > 0 and not s[0].isdigit():
-            s = s[1:]
-        while len(s) > 0 and not s[-1].isdigit():
-            s = s[:-1]
-        return s
-
-    async def create_json_object(target: str, schema, get_value: Callable, current_obj=None, root_obj=None, parent_key='', prefix=''):
-        if current_obj is None:
-            current_obj = {}
-            root_obj = {}
-
-        for name, properties in schema.items():
-            full_key = f'{parent_key}.{name}' if parent_key else name
-            if properties['type'] == 'object':
-                current_obj[name] = await create_json_object(target, properties['properties'], get_value, {}, root_obj, full_key)
-            else:
-                description = properties.get('description')
-                enum = properties.get('enum', None)
-                if prefix:
-                    description = prefix + (description[:1].lower() + description[1:])
-                value = await get_value(target, full_key, properties['type'], description, enum, root_obj)
-                current_obj[name] = value
-                root_obj[full_key] = value
-
-        return current_obj
 
     async def extract_value(text: str, field_name: str, field_type: str, description: str, enum: list, existing_values: dict) -> Any:
         """
@@ -131,9 +113,16 @@ async def extract_qa(
         question = question.format(**existing_values)
         question = question[:1].upper() + question[1:]  # capitalize first word
 
-        qa_result = await qa.answer(text, question, confidence_threshold=0.01)
+        if vqa and is_supported_img_file(text):
+            model = vqa
+            context = Blob.from_path_or_url(text)
+        else:
+            model = qa
+            context = text
 
-        if qa_result is None:
+        qa_result = await model.answer(context, question, confidence_threshold=0.01 if not vqa else 0.1)
+
+        if qa_result is None or qa_result.answer is None:
             return None
 
         if field_type == "integer":
@@ -150,7 +139,16 @@ async def extract_qa(
             return qa_result.answer.strip(" .,;:!?")
 
     if not multiple:
-        return await create_json_object(input_md, output_schema, extract_value)
+        result_dict = await create_json_object(input_md, output_schema, extract_value)
+        if vqa:
+            img_result_dicts = [
+                await create_json_object(img, output_schema, extract_value) for img in input_img_data.values()
+            ]
+            # visual models can't process text and text models can't process documents, so if both modalities
+            # are present we use crude merging of multiple result dicts, giving precedence to visual results
+            return merge_dicts([result_dict], precedence_dicts=img_result_dicts)
+        else:
+            return result_dict
     else:
         if not multiple_description or multiple_description.isspace():
             raise MissingParameterError("Description for entity type is required.")

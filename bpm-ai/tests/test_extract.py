@@ -1,6 +1,7 @@
 from bpm_ai_core.llm.common.message import AssistantMessage
 from bpm_ai_inference.classification.transformers_classifier import TransformersClassifier
 from bpm_ai_inference.ocr.tesseract import TesseractOCR
+from bpm_ai_inference.question_answering.transformers_docvqa import TransformersDocVQA
 from bpm_ai_inference.question_answering.transformers_qa import TransformersExtractiveQA
 from bpm_ai_inference.speech_recognition.faster_whisper import FasterWhisperASR
 from bpm_ai_core.testing.fake_llm import FakeLLM
@@ -254,3 +255,69 @@ async def test_extract_qa_multiple():
         multiple_description="Meal Order"
     )
     assert actual == [{'product': 'Pizza', 'price_eur': 10.99}, {'product': 'Steak', 'price_eur': 28.89}]
+
+
+async def test_extract_qa_vqa():
+    qa = TransformersExtractiveQA()
+    classifier = TransformersClassifier()
+    vqa = TransformersDocVQA()
+    actual = await extract_qa(
+        qa=qa,
+        vqa=vqa,
+        classifier=classifier,
+        input_data={
+            "email": "Hey it's me, John Meier. You can find an invoice attached, please pay asap.",
+            "document": "invoice-simple.webp"
+        },
+        output_schema={
+            "lastname": "What is the family name (not forename)?",
+            "firstname": "What is the forename of the person named {lastname}?",
+            "invoice_number": {
+                "type": "integer",
+                "description": "What is the invoice number?"
+            },
+            "total": "What is the total?"
+        }
+    )
+    assert actual == {'lastname': 'Meier', 'firstname': 'John', 'invoice_number': 102, 'total': '$300.00'}
+
+
+async def test_extract_vqa():
+    qa = TransformersExtractiveQA()
+    classifier = TransformersClassifier()
+    vqa = TransformersDocVQA()
+    actual = await extract_qa(
+        qa=qa,
+        vqa=vqa,
+        classifier=classifier,
+        input_data={
+            "document": "invoice-simple.webp"
+        },
+        output_schema={
+            "invoice_number": {
+                "type": "integer",
+                "description": "What is the invoice number?"
+            },
+            "total": "What is the total?"
+        }
+    )
+    assert actual == {'invoice_number': 102, 'total': '$300.00'}
+
+
+async def test_extract_qa_vqa_no_image():
+    qa = TransformersExtractiveQA()
+    classifier = TransformersClassifier()
+    vqa = TransformersDocVQA()
+    actual = await extract_qa(
+        qa=qa,
+        vqa=vqa,
+        classifier=classifier,
+        input_data={
+            "email": "Hey it's me, John Meier. You can find an invoice attached, please pay asap.",
+        },
+        output_schema={
+            "lastname": "What is the family name (not forename)?",
+            "firstname": "What is the forename of the person named {lastname}?",
+        }
+    )
+    assert actual == {'lastname': 'Meier', 'firstname': 'John'}
