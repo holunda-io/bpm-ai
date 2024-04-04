@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bpm-ai"
-version = "1.4.0"
+version = "1.4.1"
 description = "AI task automation for BPM engines."
 authors = ["Bennet Krause <bennet.krause@holisticon.de>"]
 repository = "https://github.com/holunda-io/bpm-ai"
@@ -19,7 +19,7 @@ aiobotocore = "^2.12.1"
 azure-storage-blob = "^12.19.1"
 azure-ai-translation-text = "^1.0.0b1"
 azure-ai-documentintelligence = "^1.0.0b2"
-langcodes = { version = "^3.3.0", extras = ["data"]}
+av = "^11.0.0"
 
 [tool.poetry.group.dev.dependencies]
 bpm-ai-inference = "0.2.2"

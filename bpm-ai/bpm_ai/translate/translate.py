@@ -7,7 +7,7 @@ from bpm_ai_core.translation.nmt import NMTModel
 
 from bpm_ai.common.errors import MissingParameterError, LanguageNotFoundError
 from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_documents
-from bpm_ai.translate.schema import get_translation_output_schema
+from bpm_ai.translate.util import get_translation_output_schema, get_lang_code
 
 
 @trace("bpm-ai-translate", ["llm"])
@@ -68,10 +68,7 @@ async def translate_nmt(
     input_items = await transcribe_audio(input_items, asr)
 
     try:
-        import langcodes
-        target_language_code = langcodes.find(target_language).language
-    except ImportError:
-        raise ImportError('langcodes is not installed')
+        target_language_code = get_lang_code(target_language)
     except LookupError:
         raise LanguageNotFoundError(f"Could not identify target language '{target_language}'.")
 
