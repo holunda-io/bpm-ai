@@ -12,14 +12,14 @@ readme = "README.md"
 python = "^3.11"
 bpm-ai-core = "2.2.0"
 openai = "^1.11.0"
-anthropic = "^0.20.0"
+anthropic = "^0.21.3"
 langfuse = "^2.13.3"
 amazon-textract-prettyprinter = "^0.1.9"
 aiobotocore = "^2.12.1"
 azure-storage-blob = "^12.19.1"
 azure-ai-translation-text = "^1.0.0b1"
 azure-ai-documentintelligence = "^1.0.0b2"
-
+langcodes = { version = "^3.3.0", extras = ["data"]}
 
 [tool.poetry.group.dev.dependencies]
 bpm-ai-inference = "0.2.2"

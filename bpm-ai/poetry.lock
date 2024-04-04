@@ -186,13 +186,13 @@ files = [
 
 [[package]]
 name = "anthropic"
-version = "0.20.0"
+version = "0.21.3"
 description = "The official Python library for the anthropic API"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "anthropic-0.20.0-py3-none-any.whl", hash = "sha256:754fe24596efbe1d7a49d3d59818a2a25d2bf29539e036eafd8a43427cd58134"},
-    {file = "anthropic-0.20.0.tar.gz", hash = "sha256:f9f1a5213af4710d6e1f9b83208a4b158355d1a95eb4ae0906c7580aa0e0f1d1"},
+    {file = "anthropic-0.21.3-py3-none-any.whl", hash = "sha256:5869115453b543a46ded6515c9f29b8d610b6e94bbba3230ad80ac947d2b0862"},
+    {file = "anthropic-0.21.3.tar.gz", hash = "sha256:02f1ab5694c497e2b2d42d30d51a4f2edcaca92d2ec86bb64fe78a9c7434a869"},
 ]
 
 [package.dependencies]
@@ -1294,13 +1294,13 @@ data = ["language-data (>=1.1,<2.0)"]
 
 [[package]]
 name = "langfuse"
-version = "2.21.1"
+version = "2.21.3"
 description = "A client library for accessing langfuse"
 optional = false
 python-versions = "<4.0,>=3.8.1"
 files = [
-    {file = "langfuse-2.21.1-py3-none-any.whl", hash = "sha256:5ef286823a4c9903e2120ad2bf0169a929d41789702535abc713e66a0d270f05"},
-    {file = "langfuse-2.21.1.tar.gz", hash = "sha256:36494ea016784ac339a1a5375b88c33484e81668433956ead442d7a93c217078"},
+    {file = "langfuse-2.21.3-py3-none-any.whl", hash = "sha256:cce9130279984c3a5c2eaf1f6d9b5069f8f44021045cd875840037b0f74fd681"},
+    {file = "langfuse-2.21.3.tar.gz", hash = "sha256:6d11cabd95a69a152742a55802e634f5d8accf332c906cc760446b7ae1f05e35"},
 ]
 
 [package.dependencies]
@@ -1313,7 +1313,7 @@ wrapt = ">=1.14,<2.0"
 
 [package.extras]
 langchain = ["langchain (>=0.0.309)"]
-llama-index = ["llama-index (>=0.10.12,<0.11.0)"]
+llama-index = ["llama-index (>=0.10.12,<2.0.0)"]
 openai = ["openai (>=0.27.8)"]
 
 [[package]]
@@ -1946,14 +1946,13 @@ files = [
 
 [[package]]
 name = "nvidia-nvjitlink-cu12"
-version = "12.4.99"
+version = "12.4.127"
 description = "Nvidia JIT LTO Library"
 optional = false
 python-versions = ">=3"
 files = [
-    {file = "nvidia_nvjitlink_cu12-12.4.99-py3-none-manylinux2014_aarch64.whl", hash = "sha256:75d6498c96d9adb9435f2bbdbddb479805ddfb97b5c1b32395c694185c20ca57"},
-    {file = "nvidia_nvjitlink_cu12-12.4.99-py3-none-manylinux2014_x86_64.whl", hash = "sha256:c6428836d20fe7e327191c175791d38570e10762edc588fb46749217cd444c74"},
-    {file = "nvidia_nvjitlink_cu12-12.4.99-py3-none-win_amd64.whl", hash = "sha256:991905ffa2144cb603d8ca7962d75c35334ae82bf92820b6ba78157277da1ad2"},
+    {file = "nvidia_nvjitlink_cu12-12.4.127-py3-none-manylinux2014_x86_64.whl", hash = "sha256:06b3b9b25bf3f8af351d664978ca26a16d2c5127dbd53c0497e28d1fb9611d57"},
+    {file = "nvidia_nvjitlink_cu12-12.4.127-py3-none-win_amd64.whl", hash = "sha256:fd9020c501d27d135f983c6d3e244b197a7ccad769e34df53a42e276b0e25fa1"},
 ]
 
 [[package]]
@@ -3897,4 +3896,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "82db7328e2e81996fd3209d375cc05bdca5cf0cfba1bbc8fff4b356663eecda1"
+content-hash = "722300df83df4ad82c3e834b19e9d050006500696b52d4c205aa83c6c966b912"
