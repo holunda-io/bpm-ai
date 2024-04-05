@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Any
 
 from PIL.Image import Image
 
@@ -45,28 +45,24 @@ def message_to_anthropic_dict(message: ChatMessage) -> dict:
 
 def tool_calls_message_to_anthropic_dict(message: AssistantMessage) -> dict:
     return {
-        "role": "tool_inputs",
-        "content": message.content,
-        "tool_inputs": [
-            {
-                "tool_name": call.name,
-                "tool_arguments": call.payload_dict()
-            }
-            for call in message.tool_calls
-        ]
+        "role": "assistant",
+        "content": ([{"type": "text", "text": message.content}] if message.content else [])
+                 + [{"type": "tool_use", "id": call.id, "name": call.name, "input": call.payload}
+                    for call in message.tool_calls]
     }
 
 
-def tool_result_message_to_anthropic_dict(message: ToolResultMessage) -> dict:
+def tool_result_message_to_anthropic_dict(message: ToolResultMessage, is_error: bool = False) -> dict:
     return {
-        "role": "tool_outputs",
-        "tool_outputs": [
-            {
-                "tool_name": message.id,
-                "tool_result": message.content
-            }
-        ],
-        "tool_error": None
+      "role": "user",
+      "content": [
+        {
+          "type": "tool_result",
+          "tool_use_id": message.id,
+          "content": message.content,
+          **({"is_error": True} if is_error else {})
+        }
+      ]
     }
 
 
@@ -85,4 +81,12 @@ def str_to_anthropic_text_dict(text: str) -> dict:
     return {
         "type": "text",
         "text": text
+    }
+
+
+def json_schema_to_anthropic_tool(name: str, desc: str, schema: dict[str, Any]) -> dict:
+    return {
+        "name": name,
+        "description": desc,
+        "input_schema": schema
     }

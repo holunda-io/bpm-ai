@@ -5,9 +5,7 @@ from typing import Dict, Any, Optional, List
 from bpm_ai_core.llm.anthropic_chat import get_anthropic_client
 from bpm_ai_core.llm.anthropic_chat._constants import DEFAULT_MODEL, DEFAULT_TEMPERATURE, \
     DEFAULT_MAX_RETRIES
-from bpm_ai_core.llm.anthropic_chat.tools.tool import AnthropicTool
-from bpm_ai_core.llm.anthropic_chat.tools.tool_user import ToolUser
-from bpm_ai_core.llm.anthropic_chat.util import messages_to_anthropic_dicts
+from bpm_ai_core.llm.anthropic_chat.util import messages_to_anthropic_dicts, json_schema_to_anthropic_tool
 from bpm_ai_core.llm.common.llm import LLM
 from bpm_ai_core.llm.common.message import ChatMessage, ToolCallMessage, AssistantMessage, SystemMessage
 from bpm_ai_core.llm.common.tool import Tool
@@ -19,7 +17,8 @@ logger = logging.getLogger(__name__)
 
 try:
     from anthropic import AsyncAnthropic, RateLimitError, InternalServerError, APIConnectionError
-    from anthropic.types import Message
+    from anthropic.types import Message, TextBlock
+    from anthropic.types.beta.tools import ToolUseBlock, ToolsBetaMessage
 
     has_anthropic = True
 except ImportError:
@@ -80,8 +79,7 @@ class ChatAnthropic(LLM):
             result_dict = await self._run_output_schema_completion(messages, output_schema, current_try)
             return AssistantMessage(content=result_dict)
         elif tools:
-            result_dict = await self._run_tool_completion(messages, tools)
-            return self._tool_calls_to_tool_message(result_dict, tools)
+            return await self._run_tool_completion(messages, tools, current_try)
         else:
             completion = await self._run_completion(messages, stop, current_try)
             return AssistantMessage(content=completion.content[0].text.strip())
@@ -99,15 +97,36 @@ class ChatAnthropic(LLM):
         Tracing.tracers().end_llm_trace(completion.content[0].text)
         return completion
 
-    async def _run_tool_completion(self, messages: list[ChatMessage], tools: list[Tool] = None) -> dict:
-        tool_user = ToolUser(tools=[
-            AnthropicTool(name=tool.name, description=tool.description, args_schema=tool.args_schema)
-            for tool in tools
-        ])
-        return await tool_user.use_tools(
+    async def _run_tool_completion(self, messages: list[ChatMessage], tools: list[Tool] = None, current_try: int = None) -> AssistantMessage:
+        anthropic_tools = [json_schema_to_anthropic_tool(f.name, f.description, f.args_schema) for f in tools] if tools else []
+        Tracing.tracers().start_llm_trace(self, messages, current_try, anthropic_tools)
+        completion = await self.client.beta.tools.messages.create(
+            max_tokens=4096,
+            model=self.model,
+            temperature=self.temperature,
+            system=messages.pop(0).content if (messages and messages[0].role == "system") else "",
             messages=messages_to_anthropic_dicts(messages),
-            execution_mode='manual',
-            verbose=0
+            tools=anthropic_tools
+        )
+        Tracing.tracers().end_llm_trace(completion.content[0].text)
+        return self._tool_calls_to_tool_message(completion, tools)
+
+    @staticmethod
+    def _tool_calls_to_tool_message(message: ToolsBetaMessage, tools: List[Tool]) -> AssistantMessage:
+        texts = [c.text for c in message.content if isinstance(c, TextBlock)]
+        tool_uses = [c for c in message.content if isinstance(c, ToolUseBlock)]
+        return AssistantMessage(
+            name=", ".join([t.name for t in tool_uses]),
+            content="\n".join(texts),
+            tool_calls=[
+                ToolCallMessage(
+                    id=t.id,
+                    name=t.name,
+                    payload=t.input,
+                    tool=next((item for item in tools if item.name == t.name), None)
+                )
+                for t in tool_uses
+            ]
         )
 
     async def _run_output_schema_completion(self, messages: list[ChatMessage], output_schema: dict[str, Any], current_try: int = None) -> dict:
@@ -130,22 +149,6 @@ class ChatAnthropic(LLM):
         except ValueError:
             json_object = None
         return json_object
-
-    @staticmethod
-    def _tool_calls_to_tool_message(result_dict: dict, tools: List[Tool]) -> AssistantMessage:
-        return AssistantMessage(
-            name=", ".join([t['tool_name'] for t in result_dict['tool_inputs']]),
-            content=result_dict['content'],
-            tool_calls=[
-                ToolCallMessage(
-                    id=t['tool_name'],
-                    name=t['tool_name'],
-                    payload=t['tool_arguments'],
-                    tool=next((item for item in tools if item.name == t['tool_name']), None)
-                )
-                for t in result_dict['tool_inputs']
-            ]
-        )
 
     def supports_images(self) -> bool:
         return True
