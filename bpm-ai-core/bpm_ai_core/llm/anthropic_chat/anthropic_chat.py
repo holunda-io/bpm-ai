@@ -2,6 +2,8 @@ import json
 import logging
 from typing import Dict, Any, Optional, List
 
+from typing_extensions import deprecated
+
 from bpm_ai_core.llm.anthropic_chat import get_anthropic_client
 from bpm_ai_core.llm.anthropic_chat._constants import DEFAULT_MODEL, DEFAULT_TEMPERATURE, \
     DEFAULT_MAX_RETRIES
@@ -76,8 +78,12 @@ class ChatAnthropic(LLM):
         current_try: int = None
     ) -> AssistantMessage:
         if output_schema:
-            result_dict = await self._run_output_schema_completion(messages, output_schema, current_try)
-            return AssistantMessage(content=result_dict)
+            tools = [self._output_schema_to_tool(output_schema)]
+            message = await self._run_tool_completion(messages, tools, current_try)
+            if message.has_tool_calls():
+                return AssistantMessage(content=message.tool_calls[0].payload)
+            else:
+                return AssistantMessage(content=None)
         elif tools:
             return await self._run_tool_completion(messages, tools, current_try)
         else:
@@ -129,6 +135,16 @@ class ChatAnthropic(LLM):
             ]
         )
 
+    @staticmethod
+    def _output_schema_to_tool(output_schema: dict):
+        output_schema = output_schema.copy()
+        return Tool.create(
+            name=output_schema.pop("name", None) or "record_result",
+            description=output_schema.pop("description", None) or "Record your result into well-structured JSON.",
+            args_schema=output_schema
+        )
+
+    @deprecated("Using a tool for now but still need to evaluate which is better")
     async def _run_output_schema_completion(self, messages: list[ChatMessage], output_schema: dict[str, Any], current_try: int = None) -> dict:
         output_schema = expand_simplified_json_schema(output_schema)
         output_prompt = Prompt.from_file(
