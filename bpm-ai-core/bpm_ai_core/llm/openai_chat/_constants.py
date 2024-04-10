@@ -1,6 +1,6 @@
 import httpx
 
-DEFAULT_MODEL = "gpt-4-turbo-preview"
+DEFAULT_MODEL = "gpt-4-turbo"
 DEFAULT_TEMPERATURE = 0.0
 DEFAULT_SEED = 42
 DEFAULT_MAX_RETRIES = 8

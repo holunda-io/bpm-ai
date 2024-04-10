@@ -205,7 +205,7 @@ class ChatOpenAI(LLM):
         return json_object
 
     def supports_images(self) -> bool:
-        return "vision" in self.model
+        return self.model == "gpt-4-turbo"
 
     def supports_video(self) -> bool:
         return False
