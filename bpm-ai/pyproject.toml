@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bpm-ai"
-version = "1.4.1"
+version = "1.5.0"
 description = "AI task automation for BPM engines."
 authors = ["Bennet Krause <bennet.krause@holisticon.de>"]
 repository = "https://github.com/holunda-io/bpm-ai"
@@ -9,8 +9,8 @@ license = "Apache-2.0"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
-bpm-ai-core = "2.2.0"
+python = "~3.11"
+bpm-ai-core = "2.3.2"
 openai = "^1.11.0"
 anthropic = "^0.23.1"
 langfuse = "^2.13.3"
@@ -22,7 +22,7 @@ azure-ai-documentintelligence = "^1.0.0b2"
 av = "^11.0.0"
 
 [tool.poetry.group.dev.dependencies]
-bpm-ai-inference = "0.2.2"
+bpm-ai-inference = "0.2.5"
 torch = [
     { version = "=2.2.2", source="pypi", markers = "sys_platform == 'darwin'" },
     { version = "=2.2.2+cpu", source = "torch-cpu", markers = "sys_platform != 'darwin'" },

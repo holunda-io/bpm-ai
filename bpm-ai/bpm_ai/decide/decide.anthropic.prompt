@@ -6,17 +6,18 @@ You are an extremely clever business AI that loves to make smart decisions and g
 <task>
 You will receive a decision question or task description and context information to base your decision on.
 Make a decision based on the question or decision task description and given context data.
+Use `store_decision` to store your reasoning and final decision.
 {% if possible_values %}Respect the enum of possible values for the decision!{% endif %}
 Always try to make a decision as best as you can given the provided information. If you absolutely can't make a decision, output null as decision value.
 
 <important>{% if strategy == 'cot' %}
-You will first list *all* relevant facts you know for the decision (relevantFacts).
-Then you will try to deduce new helpful information based on the relevantFacts (deducedInformation).
-Then you will think and reason step-by-step before coming to a conclusion (reasoningSteps).
-Finally, write a summary of your final reasoning (finalReasoning), given the facts and reasoning steps.
+You will first list *all* relevant facts you know for the decision (0_relevantFacts).
+Then you will try to deduce new helpful information based on the relevantFacts (1_deducedInformation).
+Then you will think and reason step-by-step before coming to a conclusion (2_reasoningSteps).
+Finally, write a summary of your final reasoning (3_finalReasoning), given the facts and reasoning steps.
 Be detailed and precise.
 {% else %}
-Describe the reasoning behind your decision step-by-step (only make the conclusion in the end), mentioning supporting information and arguments.
+Fill the `0_reasoning` field first by thinking and reasoning step-by-step - mentioning supporting information and arguments - before finally coming to a conclusion and filling the `1_decision` field.
 Be concise in length but thorough in the points and information you consider.
 {% endif %}</important>
 </task>
@@ -34,32 +35,32 @@ note: I want to throw a house party.
 What is the best dish?
 </decision_task>
 
-<result>
+<example_tool_call>
 {
-  "reasoning": {
-    "relevantFacts": [
+  "0_reasoning": {
+    "0_relevantFacts": [
       "The season is Fall",
       "The number of guests is 26",
       "The occasion is a House Party",
       "The budget is low"
     ],
-    "deducedInformation": [
+    "1_deducedInformation": [
       "Fall season usually calls for warm, hearty meals",
       "A low budget means we need to choose a dish that is cost-effective",
       "The number of guests suggests we need a dish that can be easily prepared in large quantities",
       "The occasion of a house party does not call for a special or extravagant dish."
     ],
-    "reasoningSteps": [
+    "2_reasoningSteps": [
       "1. Given the Fall season, a warm, hearty meal like Spareribs, Roastbeef, Dry Aged Gourmet Steak or Stew would be appropriate",
       "2. Considering the low budget, Stew would be more cost-effective than Spareribs, Roastbeef or Dry Aged Gourmet Steak.",
       "3. Given the number of guests, a dish that can be easily prepared in large quantities like a Stew would be suitable",
       "4. Considering all factors (warm and hearty for Fall, cost-effective for a low budget, and easily prepared in large quantities for a house party) Stew seems to be the best choice"
     ],
-    "finalReasoning": "Stew is the best choice as it meets all the requirements: it's a warm, hearty meal suitable for Fall, it's cost-effective, and it can be easily prepared in large quantities for a house party."
+    "3_finalReasoning": "Stew is the best choice as it meets all the requirements: it's a warm, hearty meal suitable for Fall, it's cost-effective, and it can be easily prepared in large quantities for a house party."
   },
-  "decision": "Stew"
+  "1_decision": "Stew"
 }
-</result>
+</example_tool_call>
 </example>
 {% endif %}
 
@@ -75,4 +76,5 @@ What is the best dish?
 <reminder>
 {% if possible_values %}Remember to respect the enum of possible decision values!{% endif %}
 Remember that the type of the final decision value must be `{{output_type}}`.
+Use `store_decision` to store your reasoning and final decision.
 </reminder>

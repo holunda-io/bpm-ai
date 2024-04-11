@@ -16,7 +16,7 @@ async def test_decide(llm):
         llm=llm,
         input_data={"email": "Hallo ich bins, der John Meier. Mein 30. Geburtstag war gut!"},
         instructions="Is the user older than 18 years?",
-        strategy="cot",
+        strategy="fast",
         possible_values=["yup", "nope"],
         output_type="string"
     )
@@ -25,6 +25,28 @@ async def test_decide(llm):
         llm.assert_last_request_contains("John Meier")
 
     assert result["decision"] == "yup"
+
+
+async def test_decide_image(llm):
+    llm = llm or FakeLLM(
+        name="openai",
+        responses=[
+            AssistantMessage(content={"decision": "INVOICE", "reasoning": ""})
+        ]
+    )
+    result = await decide_llm(
+        llm=llm,
+        input_data={
+            "email": "Hey, you can find the document we talked about attached!",
+            "doc": "invoice-simple.webp"
+        },
+        instructions="What kind of document is that?",
+        strategy="cot",
+        possible_values=["APPLICATION", "COMPLAINT", "INVOICE", "TAXES"],
+        output_type="string"
+    )
+
+    assert result["decision"] == "INVOICE"
 
 
 async def test_decide_none(llm):

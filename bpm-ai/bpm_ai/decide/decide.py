@@ -10,7 +10,7 @@ from bpm_ai_core.util.markdown import dict_to_md
 
 from bpm_ai.common.errors import MissingParameterError
 from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_documents
-from bpm_ai.decide.schema import get_cot_decision_output_schema, get_decision_output_schema
+from bpm_ai.decide.schema import get_cot_decision_output_schema, get_decision_output_schema, remove_order_prefix_from_keys
 
 
 @trace("bpm-ai-decide", ["llm"])
@@ -61,7 +61,7 @@ async def decide_llm(
 
     message = await llm.generate_message(prompt, output_schema=decide_schema)
 
-    return message.content or {}
+    return remove_order_prefix_from_keys(message.content) if message.content else{}
 
 
 @trace("bpm-ai-decide", ["classifier"])
