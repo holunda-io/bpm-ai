@@ -9,6 +9,8 @@ from bpm_ai_core.util.image import base64_encode_image, blob_as_images
 
 logger = logging.getLogger(__name__)
 
+ACCEPTED_IMAGE_FORMATS = ["jpeg", "png", "gif", "webp"]
+
 
 async def messages_to_anthropic_dicts(messages: List[ChatMessage]):
     return [await message_to_anthropic_dict(m) for m in messages]
@@ -27,7 +29,7 @@ async def message_to_anthropic_dict(message: ChatMessage) -> dict:
             if isinstance(e, str):
                 content.append(str_to_anthropic_text_dict(e))
             elif isinstance(e, Blob) and (e.is_image() or e.is_pdf()):
-                images = await blob_as_images(e, accept_formats=["jpg", "png"])
+                images = await blob_as_images(e, accept_formats=ACCEPTED_IMAGE_FORMATS)
                 for image in images:
                     content.append(image_to_anthropic_image_dict(image))
             else:
