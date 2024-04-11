@@ -3,8 +3,9 @@ from typing import List, Dict, Any
 
 from PIL.Image import Image
 
+from bpm_ai_core.llm.common.blob import Blob
 from bpm_ai_core.llm.common.message import ChatMessage, ToolResultMessage, AssistantMessage
-from bpm_ai_core.util.image import base64_encode_image
+from bpm_ai_core.util.image import base64_encode_image, blob_as_images
 
 logger = logging.getLogger(__name__)
 
@@ -25,11 +26,11 @@ def get_openai_tool_call_dict(message: AssistantMessage):
     }
 
 
-def messages_to_openai_dicts(messages: List[ChatMessage]):
-    return [message_to_openai_dict(m) for m in messages]
+async def messages_to_openai_dicts(messages: List[ChatMessage]):
+    return [await message_to_openai_dict(m) for m in messages]
 
 
-def message_to_openai_dict(message: ChatMessage) -> dict:
+async def message_to_openai_dict(message: ChatMessage) -> dict:
     if isinstance(message, AssistantMessage) and message.has_tool_calls():
         extra_dict = {
             **get_openai_tool_call_dict(message)
@@ -48,11 +49,13 @@ def message_to_openai_dict(message: ChatMessage) -> dict:
         for e in message.content:
             if isinstance(e, str):
                 content.append(str_to_openai_text_dict(e))
-            elif isinstance(e, Image):
-                content.append(image_to_openai_image_dict(e))
+            elif isinstance(e, Blob) and (e.is_image() or e.is_pdf()):
+                images = await blob_as_images(e, accept_formats=["jpg", "png"])
+                for image in images:
+                    content.append(image_to_openai_image_dict(image))
             else:
                 raise ValueError(
-                    "Elements in ChatMessage.content must be of type str or PIL.Image."
+                    "Elements in ChatMessage.content must be str or image Blob"
                 )
     else:
         content = None

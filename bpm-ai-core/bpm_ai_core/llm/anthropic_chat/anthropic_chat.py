@@ -97,7 +97,7 @@ class ChatAnthropic(LLM):
             model=self.model,
             temperature=self.temperature,
             system=messages.pop(0).content if (messages and messages[0].role == "system") else "",
-            messages=messages_to_anthropic_dicts(messages),
+            messages=await messages_to_anthropic_dicts(messages),
             stop_sequences=stop
         )
         Tracing.tracers().end_llm_trace(completion.content[0].text)
@@ -111,10 +111,10 @@ class ChatAnthropic(LLM):
             model=self.model,
             temperature=self.temperature,
             system=messages.pop(0).content if (messages and messages[0].role == "system") else "",
-            messages=messages_to_anthropic_dicts(messages),
+            messages=await messages_to_anthropic_dicts(messages),
             tools=anthropic_tools
         )
-        Tracing.tracers().end_llm_trace(completion.content[0].text)
+        Tracing.tracers().end_llm_trace(completion.content)
         return self._tool_calls_to_tool_message(completion, tools)
 
     @staticmethod

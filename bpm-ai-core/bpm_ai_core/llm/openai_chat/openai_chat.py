@@ -156,8 +156,8 @@ class ChatOpenAI(LLM):
             "model": self.model,
             "temperature": self.temperature,
             **({"seed": self.seed} if self.seed else {}),
-            "messages": messages_to_openai_dicts(messages),
-            "stop": stop or [],
+            "messages": await messages_to_openai_dicts(messages),
+            **({"stop": stop} if stop else {}),
             **({
                    "tool_choice": {
                        "type": "function",
@@ -175,8 +175,8 @@ class ChatOpenAI(LLM):
     def _output_schema_to_tool(output_schema: dict):
         output_schema = output_schema.copy()
         return Tool.create(
-            name=output_schema.pop("name") or "store_result",
-            description=output_schema.pop("description") or "Stores your result",
+            name=output_schema.pop("name", None) or "store_result",
+            description=output_schema.pop("description", None) or "Stores your result",
             args_schema=output_schema
         )
 
