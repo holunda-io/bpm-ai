@@ -40,7 +40,7 @@ async def test_anthropic_image(filename):
         "total": {"type": "number", "description": "the total"},
         "tax": {"type": "number", "description": "the tax amount"},
         "duedate": "the due date",
-        "invoiceNumber": {"type": "integer", "description": "the invoice number"},
+        "invoiceNumber": {"type": "integer", "description": "the number part of the invoice number"},
         "senderEmail": "the email address of the sender",
     })
 
