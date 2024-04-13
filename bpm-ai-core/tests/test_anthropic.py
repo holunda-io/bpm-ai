@@ -51,3 +51,19 @@ async def test_anthropic_image(filename):
         "invoiceNumber": 3337,
         "senderEmail": "admin@slicedinvoices.com",
     }
+
+
+@pytest.mark.parametrize("filename,info", [("example.jpg", "labrador"), ("invoice-simple.webp", "300")])
+async def test_anthropic_image2(filename, info):
+    llm = ChatAnthropic.for_anthropic(model="claude-3-haiku-20240307")
+    prompt = Prompt.from_string(f"""\
+    [# system #]
+    Your task is to describe the most central object information present in the given image in a single sentence.
+
+    [# user #]
+    [# blob {filename} #]
+    Describe in a single sentence!
+    """)
+    result = await llm.generate_message(prompt)
+
+    assert info in result.content.lower()

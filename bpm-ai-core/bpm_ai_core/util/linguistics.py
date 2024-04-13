@@ -184,3 +184,18 @@ stopwords = ['au', 'aux', 'avec', 'ce', 'ces', 'dans', 'de', 'des', 'du', 'elle'
              'tuve', 'tuviste', 'tuvo', 'tuvimos', 'tuvisteis', 'tuvieron', 'tuviera', 'tuvieras', 'tuviéramos',
              'tuvierais', 'tuvieran', 'tuviese', 'tuvieses', 'tuviésemos', 'tuvieseis', 'tuviesen', 'teniendo',
              'tenido', 'tenida', 'tenidos', 'tenidas', 'tened']
+
+
+special_char_map = {'ä': 'ae', 'Ä': 'Ae', 'ö': 'oe', 'Ö': 'Oe', 'ü': 'ue', 'Ü': 'Ue', 'ß': 'ss', 'æ': 'ae', 'Æ': 'Ae',
+                    'ø': 'oe', 'Ø': 'Oe', 'ë': 'e', 'Ë': 'E', 'ï': 'i', 'Ï': 'I', 'à': 'a', 'À': 'A', 'â': 'a',
+                    'Â': 'A', 'ç': 'c', 'Ç': 'C', 'é': 'e', 'É': 'E', 'è': 'e', 'È': 'E', 'ê': 'e', 'Ê': 'E', 'î': 'i',
+                    'Î': 'I', 'ô': 'o', 'Ô': 'O', 'œ': 'oe', 'Œ': 'Oe', 'ù': 'u', 'Ù': 'U', 'û': 'u', 'Û': 'U',
+                    'ÿ': 'y', 'Ÿ': 'Y', 'ì': 'i', 'Ì': 'I', 'ò': 'o', 'Ò': 'O', 'ą': 'a', 'Ą': 'A', 'ć': 'c', 'Ć': 'C',
+                    'ę': 'e', 'Ę': 'E', 'ł': 'l', 'Ł': 'L', 'ń': 'n', 'Ń': 'N', 'ó': 'o', 'Ó': 'O', 'ś': 's', 'Ś': 'S',
+                    'ź': 'z', 'Ź': 'Z', 'ż': 'z', 'Ż': 'Z', 'á': 'a', 'Á': 'A', 'ã': 'a', 'Ã': 'A', 'í': 'i', 'Í': 'I',
+                    'õ': 'o', 'Õ': 'O', 'ú': 'u', 'Ú': 'U', 'ñ': 'n', 'Ñ': 'N', 'å': 'a', 'Å': 'A', 'ґ': 'g', 'Ґ': 'G',
+                    'є': 'ye', 'Є': 'Ye', 'і': 'i', 'І': 'I', 'ї': 'yi', 'Ї': 'Yi'}
+
+
+def replace_diacritics(text: str):
+    return ''.join([special_char_map.get(char, char) for char in text])

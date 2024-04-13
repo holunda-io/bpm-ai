@@ -7,7 +7,8 @@ from typing_extensions import deprecated
 from bpm_ai_core.llm.anthropic_chat import get_anthropic_client
 from bpm_ai_core.llm.anthropic_chat._constants import DEFAULT_MODEL, DEFAULT_TEMPERATURE, \
     DEFAULT_MAX_RETRIES
-from bpm_ai_core.llm.anthropic_chat.util import messages_to_anthropic_dicts, json_schema_to_anthropic_tool
+from bpm_ai_core.llm.anthropic_chat.util import messages_to_anthropic_dicts, json_schema_to_anthropic_tool, \
+    tool_calls_to_tool_message
 from bpm_ai_core.llm.common.llm import LLM
 from bpm_ai_core.llm.common.message import ChatMessage, ToolCallMessage, AssistantMessage, SystemMessage
 from bpm_ai_core.llm.common.tool import Tool
@@ -104,7 +105,8 @@ class ChatAnthropic(LLM):
         return completion
 
     async def _run_tool_completion(self, messages: list[ChatMessage], tools: list[Tool] = None, current_try: int = None) -> AssistantMessage:
-        anthropic_tools = [json_schema_to_anthropic_tool(f.name, f.description, f.args_schema) for f in tools] if tools else []
+        sanitized_key_mappings = {t.name: {} for t in tools}
+        anthropic_tools = [json_schema_to_anthropic_tool(t.name, t.description, t.args_schema, sanitized_key_mappings[t.name]) for t in tools] if tools else []
         Tracing.tracers().start_llm_trace(self, messages, current_try, anthropic_tools)
         completion = await self.client.beta.tools.messages.create(
             max_tokens=4096,
@@ -115,25 +117,7 @@ class ChatAnthropic(LLM):
             tools=anthropic_tools
         )
         Tracing.tracers().end_llm_trace(completion.content)
-        return self._tool_calls_to_tool_message(completion, tools)
-
-    @staticmethod
-    def _tool_calls_to_tool_message(message: ToolsBetaMessage, tools: List[Tool]) -> AssistantMessage:
-        texts = [c.text for c in message.content if isinstance(c, TextBlock)]
-        tool_uses = [c for c in message.content if isinstance(c, ToolUseBlock)]
-        return AssistantMessage(
-            name=", ".join([t.name for t in tool_uses]),
-            content="\n".join(texts),
-            tool_calls=[
-                ToolCallMessage(
-                    id=t.id,
-                    name=t.name,
-                    payload=t.input,
-                    tool=next((item for item in tools if item.name == t.name), None)
-                )
-                for t in tool_uses
-            ]
-        )
+        return tool_calls_to_tool_message(completion, tools, sanitized_key_mappings)
 
     @staticmethod
     def _output_schema_to_tool(output_schema: dict):

@@ -1,5 +1,4 @@
-from typing import Any, Dict, List, Union
-
+from typing import Any, Dict, List, Union, Callable
 
 TYPE_MAP = {
     int: 'integer',
@@ -58,3 +57,41 @@ def expand_simplified_json_schema(data: Dict[str, Any]) -> Dict[str, Any]:
     json_schema = {}
     parse(data, json_schema)
     return json_schema
+
+
+def sanitize_schema(schema, sanitize_key: Callable, key_mapping: dict):
+    if isinstance(schema, dict):
+        modified_schema = {}
+        for key, value in schema.items():
+            if key == 'required':
+                # Process 'required' list separately
+                modified_schema[key] = [sanitize_key(item) for item in value]
+            else:
+                sanitized_key = sanitize_key(key)
+                if sanitized_key != key:
+                    key_mapping[sanitized_key] = key
+                # Recursively process nested dictionaries
+                if isinstance(value, dict):
+                    modified_schema[sanitized_key] = sanitize_schema(value, sanitize_key, key_mapping)
+                else:
+                    modified_schema[sanitized_key] = value
+        return modified_schema
+    else:
+        # Return non-dictionary values as is
+        return schema
+
+
+def desanitize_json(json, key_mapping: dict):
+    if isinstance(json, dict):
+        original_schema = {}
+        for key, value in json.items():
+            original_key = key_mapping.get(key, key)
+            # Recursively process nested dictionaries
+            if isinstance(value, dict):
+                original_schema[original_key] = desanitize_json(value, key_mapping)
+            else:
+                original_schema[original_key] = value
+        return original_schema
+    else:
+        # Return non-dictionary values as is
+        return json
