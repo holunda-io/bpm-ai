@@ -1,6 +1,7 @@
 import logging
 
 from bpm_ai_core.tracing.tracer import Tracer
+from bpm_ai_core.util.image import replace_base64_values
 
 logger = logging.getLogger("logging-tracer")
 logger.setLevel(logging.INFO)
@@ -41,7 +42,7 @@ class LoggingTracer(Tracer):
             logger.info(self._indent() + f"[EVENT] {name}, inputs={inputs}, outputs={outputs}")
 
     def start_llm_trace(self, llm, messages, current_try, tools=None):
-        logger.info(self._indent() + f"[LLM <] {llm.model}, current_try: {current_try}, tools={tools}, messages={messages}")
+        logger.info(self._indent() + f"[LLM <] {llm.model}, current_try: {current_try}, tools={tools}, messages={replace_base64_values(messages)}")
 
     def end_llm_trace(self, completion=None, error_msg=None):
         if error_msg:

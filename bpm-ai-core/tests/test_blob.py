@@ -2,7 +2,7 @@ from bpm_ai_core.llm.common.blob import Blob
 
 
 def test_blob_path():
-    blob = Blob.from_path_or_url('example.mp3')
+    blob = Blob.from_path_or_url('files/example.mp3')
 
     assert blob.path.endswith('/example.mp3')
     assert blob.mimetype == 'audio/mpeg'
@@ -11,7 +11,7 @@ def test_blob_path():
 
 
 def test_blob_path2():
-    blob = Blob.from_path_or_url('example.jpg')
+    blob = Blob.from_path_or_url('files/example.jpg')
 
     assert blob.path.endswith('/example.jpg')
     assert blob.mimetype == 'image/jpeg'

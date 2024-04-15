@@ -53,11 +53,17 @@ async def message_to_openai_dict(message: ChatMessage) -> dict:
                 content.append(str_to_openai_text_dict(e))
             elif isinstance(e, Blob) and (e.is_image() or e.is_pdf()):
                 images = await blob_as_images(e, accept_formats=ACCEPTED_IMAGE_FORMATS)
-                for image in images:
+                for i, image in enumerate(images):
+                    content.append(str_to_openai_text_dict(f"Image / Page {i + 1}:"))
                     content.append(image_to_openai_image_dict(image))
+            elif isinstance(e, Blob) and (e.is_text()):
+                text = (await e.as_bytes()).decode("utf-8")
+                filename = (" name='" + e.path + "'") if e.path else ''
+                text = f"<file{filename}>\n{text}\n</file>"
+                content.append(str_to_openai_text_dict(text))
             else:
                 raise ValueError(
-                    "Elements in ChatMessage.content must be str or image Blob"
+                    "Elements in ChatMessage.content must be str or Blob (image/pdf/text)"
                 )
     else:
         content = None

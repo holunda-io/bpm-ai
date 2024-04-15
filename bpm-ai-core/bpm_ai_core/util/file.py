@@ -4,14 +4,17 @@ from urllib.parse import urlparse
 
 from bpm_ai_core.util.audio import audio_ext_map
 from bpm_ai_core.util.image import image_ext_map, pdf_ext_map
+from bpm_ai_core.util.text import text_ext_map
 
-supported_ext_map = {**audio_ext_map, **image_ext_map, **pdf_ext_map}
+supported_ext_map = {**audio_ext_map, **image_ext_map, **pdf_ext_map, **text_ext_map}
 supported_extensions = supported_ext_map.keys()
 
 
 def guess_mimetype(filename: str) -> str | None:
     if is_supported_file(filename, list(image_ext_map.keys())):
         return image_ext_map[_extract_extension(filename)]
+    elif is_supported_file(filename, list(text_ext_map.keys())):
+        return text_ext_map[_extract_extension(filename)]
     elif is_supported_file(filename, list(pdf_ext_map.keys())):
         return "application/pdf"
     elif is_supported_file(filename, list(audio_ext_map.keys())):
@@ -34,6 +37,10 @@ def is_supported_audio_file(url_or_path: str) -> bool:
     return is_supported_file(url_or_path, extensions=list(audio_ext_map.keys()))
 
 
+def is_supported_text_file(url_or_path: str) -> bool:
+    return is_supported_file(url_or_path, extensions=list(text_ext_map.keys()))
+
+
 def _extract_extension(url_or_path):
     url_or_path = url_or_path.strip()
     # Extract the path from URL if it's a URL
@@ -46,3 +53,7 @@ def _extract_extension(url_or_path):
     _, file_extension = os.path.splitext(path)
     file_extension = file_extension.lower().lstrip('.')
     return file_extension
+
+
+def is_file(s: str) -> bool:
+    return s.startswith('http://') or s.startswith('https://') or os.path.exists(os.path.dirname(s))

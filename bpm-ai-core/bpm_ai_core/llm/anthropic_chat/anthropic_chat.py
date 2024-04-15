@@ -92,16 +92,17 @@ class ChatAnthropic(LLM):
             return AssistantMessage(content=completion.content[0].text.strip())
 
     async def _run_completion(self, messages: List[ChatMessage], stop: list[str] = None, current_try: int = None) -> Message:
+        messages = await messages_to_anthropic_dicts(messages)
         Tracing.tracers().start_llm_trace(self, messages, current_try, None)
         completion = await self.client.messages.create(
             max_tokens=4096,
             model=self.model,
             temperature=self.temperature,
-            system=messages.pop(0).content if (messages and messages[0].role == "system") else "",
-            messages=await messages_to_anthropic_dicts(messages),
+            system=messages.pop(0)["content"] if (messages and messages[0]["role"] == "system") else "",
+            messages=messages,
             stop_sequences=stop
         )
-        Tracing.tracers().end_llm_trace(completion.content[0].text)
+        Tracing.tracers().end_llm_trace(completion)
         return completion
 
     async def _run_tool_completion(self, messages: list[ChatMessage], tools: list[Tool] = None, current_try: int = None) -> AssistantMessage:
@@ -116,7 +117,7 @@ class ChatAnthropic(LLM):
             messages=await messages_to_anthropic_dicts(messages),
             tools=anthropic_tools
         )
-        Tracing.tracers().end_llm_trace(completion.content)
+        Tracing.tracers().end_llm_trace(completion)
         return tool_calls_to_tool_message(completion, tools, sanitized_key_mappings)
 
     @staticmethod

@@ -71,10 +71,13 @@ class Blob(BaseModel):
         app_text_mimetypes = [
             'application/json',
             'application/javascript',
-            'application/manifest+json',
             'application/xml',
             'application/x-sh',
             'application/x-python',
+            'application/x-httpd-php',
+            'application/x-httpd-php',
+            'application/x-latex',
+            'application/x-tex',
         ]
         return (self.mimetype.startswith("text/") or self.mimetype in app_text_mimetypes) if self.mimetype else False
 

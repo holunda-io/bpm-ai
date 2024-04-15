@@ -1,6 +1,7 @@
 import logging
 
 from bpm_ai_core.tracing.tracer import Tracer
+from bpm_ai_core.util.image import replace_base64_values
 
 try:
     from langfuse import Langfuse
@@ -53,9 +54,11 @@ class LangfuseTracer(Tracer):
         self.span_stack = []
 
     def start_span(self, name: str, inputs: dict = None):
-        if not self.trace:
-            raise Exception("No trace started for this thread")
-        if self.span_stack:
+        if not self.trace and not self.span_stack:
+            self.start_trace("unnamed", inputs=inputs)
+            self.implicit_trace = True
+            client = self.trace
+        elif self.span_stack:
             client = self.span_stack[-1]
         else:
             client = self.trace
@@ -71,13 +74,12 @@ class LangfuseTracer(Tracer):
             level="ERROR" if error_msg else None,
             status_message=error_msg
         )
+        if self.implicit_trace:
+            self.end_trace(outputs=output)
 
     def start_llm_trace(self, llm, messages: list, current_try: int, tools=None):
-        if not self.trace and not self.span_stack:
-            self.start_trace("unnamed", inputs=messages)
-            self.implicit_trace = True
-            client = self.trace
-        elif self.span_stack:
+        messages = replace_base64_values(messages)
+        if self.span_stack:
             client = self.span_stack[-1]
         else:
             client = self.trace
@@ -103,8 +105,6 @@ class LangfuseTracer(Tracer):
             level="ERROR" if error_msg else None,
             status_message=error_msg
         )
-        if self.implicit_trace:
-            self.end_trace(outputs=completion)
 
     def start_tool_trace(self, tool, inputs: dict):
         self.start_span(tool.name, inputs)

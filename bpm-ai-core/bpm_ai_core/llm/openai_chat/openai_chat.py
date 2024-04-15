@@ -152,11 +152,12 @@ class ChatOpenAI(LLM):
         stop: list[str] = None,
         current_try: int = None
     ) -> ChatCompletion:
+        messages = await messages_to_openai_dicts(messages)
         args = {
             "model": self.model,
             "temperature": self.temperature,
             **({"seed": self.seed} if self.seed else {}),
-            "messages": await messages_to_openai_dicts(messages),
+            "messages": messages,
             **({"stop": stop} if stop else {}),
             **({
                    "tool_choice": {

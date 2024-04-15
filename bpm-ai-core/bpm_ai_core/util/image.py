@@ -1,6 +1,7 @@
 import base64
 import io
 import logging
+import re
 import tempfile
 from io import BytesIO
 from typing import Union, Tuple
@@ -116,6 +117,32 @@ def base64_encode_image(image: Image):
     image.save(buffered, format=image.format or "JPEG")  # Assuming JPEG if format is not provided
     img_str = base64.b64encode(buffered.getvalue())
     return img_str.decode('utf-8')
+
+
+def replace_base64_values(data):
+    if isinstance(data, dict):
+        decoded_dict = {}
+        for key, value in data.items():
+            decoded_dict[key] = replace_base64_values(value)
+        return decoded_dict
+    elif isinstance(data, list):
+        decoded_list = []
+        for item in data:
+            decoded_list.append(replace_base64_values(item))
+        return decoded_list
+    elif isinstance(data, str) and len(data) > 1024 and is_base64(data):
+        return "..."
+    else:
+        return data
+
+
+def is_base64(s: str):
+    try:
+        s = re.sub(r"^data:image/.+;base64,", "", s)
+        base64.b64decode(s, validate=True)
+        return True
+    except:
+        return False
 
 
 def draw_boxes_on_image(image: Image, normalized_boxes: list[Tuple[float, float, float, float]]):

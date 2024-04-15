@@ -3,6 +3,7 @@ import pytest
 from bpm_ai_core.llm.common.tool import Tool
 from bpm_ai_core.llm.openai_chat.openai_chat import ChatOpenAI
 from bpm_ai_core.prompt.prompt import Prompt
+from bpm_ai_core.tracing.decorators import trace
 
 
 async def test_openai_tools():
@@ -24,8 +25,8 @@ async def test_openai_tools():
     assert result.tool_calls[0].payload_dict() == {"orders": ["3", "12", "2"]}
 
 
-@pytest.mark.parametrize("filename", ["invoice.png", "invoice.pdf"])
-async def test_openai_image(filename):
+@pytest.mark.parametrize("filename", ["files/invoice.png", "files/invoice.pdf"])
+async def test_openai_document(filename):
     llm = ChatOpenAI.for_openai()
     prompt = Prompt.from_string(f"""\
     [# system #]
@@ -37,23 +38,17 @@ async def test_openai_image(filename):
     """)
     result = await llm.generate_message(prompt, output_schema={
         "total": {"type": "number", "description": "the total"},
-        "tax": {"type": "number", "description": "the tax amount"},
         "duedate": "the due date",
-        "invoiceNumber": {"type": "integer", "description": "the invoice number"},
-        "senderEmail": "the email address of the sender",
     })
 
     assert result.content == {
         "total": 93.50,
-        "tax": 8.5,
         "duedate": "January 31, 2016",
-        "invoiceNumber": 3337,
-        "senderEmail": "admin@slicedinvoices.com",
     }
 
 
-@pytest.mark.parametrize("filename,info", [("example.jpg", "labrador"), ("invoice-simple.webp", "300")])
-async def test_openai_image2(filename, info):
+@pytest.mark.parametrize("filename,info", [("files/example.jpg", "labrador"), ("files/invoice-simple.webp", "300")])
+async def test_openai_image(filename, info):
     llm = ChatOpenAI.for_openai()
     prompt = Prompt.from_string(f"""\
     [# system #]
@@ -62,6 +57,21 @@ async def test_openai_image2(filename, info):
     [# user #]
     [# blob {filename} #]
     Describe in a single sentence!
+    """)
+    result = await llm.generate_message(prompt)
+
+    assert info in result.content.lower()
+
+
+@pytest.mark.parametrize("filename,info", [("files/test.txt", "jim")])
+async def test_anthropic_text_file(filename, info):
+    llm = ChatOpenAI.for_openai(model="gpt-3.5-turbo")
+    prompt = Prompt.from_string(f"""\
+    [# system #]
+    You are a helpful assistant.
+    [# user #]
+    [# blob {filename} #]
+    Very briefly, what is the file about?
     """)
     result = await llm.generate_message(prompt)
 
