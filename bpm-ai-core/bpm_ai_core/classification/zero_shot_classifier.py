@@ -22,7 +22,8 @@ class ZeroShotClassifier(ABC):
             self,
             text: str,
             classes: list[str],
-            hypothesis_template: str | None = None
+            hypothesis_template: str | None = None,
+            multi_label: bool = False
     ) -> ClassificationResult:
         pass
 
@@ -32,14 +33,19 @@ class ZeroShotClassifier(ABC):
             text: str,
             classes: list[str],
             confidence_threshold: float | None = None,
-            hypothesis_template: str | None = None
+            hypothesis_template: str | None = None,
+            multi_label: bool = False
     ) -> ClassificationResult:
         result = await self._do_classify(
             text=text,
             classes=classes,
-            hypothesis_template=hypothesis_template
+            hypothesis_template=hypothesis_template,
+            multi_label=multi_label
         )
+        if multi_label:
+            result.labels_scores = [(l, s) for l, s in result.labels_scores if s > (confidence_threshold or -1)]
+
         # Only return if the score is above the threshold (if given)
         return result \
-            if not confidence_threshold or result.max_score > confidence_threshold \
+            if result.max_score > (confidence_threshold or -1) \
             else None
