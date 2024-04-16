@@ -1,3 +1,4 @@
+import json
 import logging
 import re
 from typing import List, Any, Callable
@@ -62,7 +63,7 @@ def tool_calls_message_to_anthropic_dict(message: AssistantMessage) -> dict:
     return {
         "role": "assistant",
         "content": ([{"type": "text", "text": message.content}] if message.content else [])
-                 + [{"type": "tool_use", "id": call.id, "name": call.name, "input": call.payload}
+                 + [{"type": "tool_use", "id": call.id, "name": call.name, "input": call.payload_dict()}
                     for call in message.tool_calls]
     }
 
@@ -74,7 +75,7 @@ def tool_result_message_to_anthropic_dict(message: ToolResultMessage, is_error: 
         {
           "type": "tool_result",
           "tool_use_id": message.id,
-          "content": message.content,
+          "content": message.content if isinstance(message.content, str) else json.dumps(message.content, indent=2),
           **({"is_error": True} if is_error else {})
         }
       ]
