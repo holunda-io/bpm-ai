@@ -8,8 +8,9 @@ from bpm_ai_core.speech_recognition.asr import ASRModel
 from bpm_ai_core.tracing.decorators import trace
 
 from bpm_ai.common.errors import MissingParameterError
-from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_documents
-from bpm_ai.compose.util import remove_stop_words, type_to_prompt_type_str
+from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_documents, prepare_text_blobs, \
+    assert_all_files_processed
+from bpm_ai.compose.util import remove_stop_words, type_to_prompt_type_str, desc_to_var_name
 
 TEMPLATE_VAR_PATTERN = r'\{\s*([^{}\s]+(?:\s*[^{}\s]+)*)\s*\}'
 
@@ -35,10 +36,6 @@ async def compose_llm(
     if template is None:
         raise MissingParameterError("template is required")
 
-    def desc_to_var_name(desc: str):
-        v = remove_stop_words(desc, separator='_')
-        return re.sub(r'[^A-Za-z0-9_\'äöüÄÖÜß]+', '', v).lower()
-
     def format_vars(template: str, f: Callable[[str], str]):
         return re.sub(TEMPLATE_VAR_PATTERN, lambda m: f(m.group(1)), template)
 
@@ -47,6 +44,8 @@ async def compose_llm(
     else:
         input_data = await ocr_documents(input_data, ocr)
     input_data = await transcribe_audio(input_data, asr)
+    input_data = prepare_text_blobs(input_data)
+    assert_all_files_processed(input_data)
 
     # all variables found in the template
     template_vars = re.findall(TEMPLATE_VAR_PATTERN, template)

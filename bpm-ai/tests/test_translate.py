@@ -3,14 +3,15 @@ from bpm_ai_core.llm.common.message import AssistantMessage
 from bpm_ai_core.testing.fake_llm import FakeLLM
 from bpm_ai_inference.translation.easy_nmt.easy_nmt import EasyNMT
 
-from bpm_ai.common.errors import MissingParameterError
+from bpm_ai.common.errors import MissingParameterError, FileNotSupportedError
 from bpm_ai.translate.translate import translate_llm, translate_nmt
 
 
 async def test_translate(llm):
     input_data = {
         "email": "Hey ich bins, der Jürgen. Ich habe ein neues Auto.",
-        "subject": "Hallo!"
+        "subject": "Hallo!",
+        "doc": "files/document.txt"
     }
     llm = llm or FakeLLM(
         name="openai",
@@ -109,6 +110,21 @@ async def test_translate_no_language(llm):
             llm=llm,
             input_data=input_data,
             target_language=target_language,
+        )
+
+
+async def test_translate_unsupported_file(llm):
+    llm = llm or FakeLLM(
+        name="openai",
+        responses=[]
+    )
+    with pytest.raises(FileNotSupportedError):
+        await translate_llm(
+            llm=llm,
+            input_data={
+                "doc": "files/document.docx"
+            },
+            target_language="German",
         )
 
 

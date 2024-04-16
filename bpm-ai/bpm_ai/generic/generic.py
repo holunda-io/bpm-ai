@@ -5,7 +5,8 @@ from bpm_ai_core.speech_recognition.asr import ASRModel
 from bpm_ai_core.tracing.decorators import trace
 
 from bpm_ai.common.errors import MissingParameterError
-from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_documents
+from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_documents, prepare_text_blobs, \
+    assert_all_files_processed
 
 
 @trace("bpm-ai-generic", ["llm"])
@@ -27,6 +28,8 @@ async def generic_llm(
     else:
         input_data = await ocr_documents(input_data, ocr)
     input_data = await transcribe_audio(input_data, asr)
+    input_data = prepare_text_blobs(input_data)
+    assert_all_files_processed(input_data)
 
     prompt = Prompt.from_file(
         "generic",

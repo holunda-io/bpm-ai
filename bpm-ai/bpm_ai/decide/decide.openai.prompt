@@ -4,17 +4,19 @@ Your job is to help users execute their business processes in a smart and effici
 
 You will receive a decision task description and context information to base your decision on.
 Make a decision based on the decision task description and context data and store it by calling the function.
-Respect the enum of possible values for the decision, if any is given.
+{% if possible_values %}Respect the enum of possible values for the decision!{% endif %}{% if multiple_decision_values %} Output an array of all decision values that fit given the decision task and context information.{% endif %}
 Always try to make a decision as best as you can given the provided information. If you absolutely can't make a decision, your decision value will be null.
 {% if strategy == 'cot' %}
-You will first list *all* relevant facts you know for the decision (0_relevantFacts).
-Then you will try to deduce new helpful information based on the relevantFacts (1_deducedInformation).
-Then you will think and reason step-by-step before coming to a conclusion (2_reasoningSteps).
-Finally, store a summary of your final reasoning (3_finalReasoning), given the facts and reasoning steps.
+Inside the `0_reasoning` object:
+- You will first list *all* relevant facts you know for the decision (00_relevantFacts).
+- Then you will try to deduce new helpful information based on the relevantFacts (01_deducedInformation).
+- Then you will think and reason step-by-step before coming to a conclusion (02_reasoningSteps).{% if multiple_decision_values %} Go through every item in the enum of possible values one-by-one and think about whether it fits and should be part of the decision output array. Output ALL decision values that fit given the decision task and context information.{% endif %}
+- Finally, store a summary of your final reasoning (03_finalReasoning), given the facts and reasoning steps.
 Be detailed and precise.
 {% else %}
 Describe the reasoning behind your decision step-by-step (only make the conclusion in the end), mentioning supporting information and arguments.
 Be concise in length but thorough in the points and information you consider.
+{% if multiple_decision_values %}Go through every item in the enum of possible values one-by-one and think about whether it fits and should be part of the decision output array. Output ALL decision values that fit given the decision task and context information.{% endif %}
 {% endif %}
 
 {% if strategy == 'cot' %}
@@ -26,13 +28,49 @@ budget: low
 note: I want to throw a house party.
 
 # DECISION TASK DESCRIPTION
-What is the best dish?
+What {% if multiple_decision_values %}are{% else %}is{% endif %} the best dish{% if multiple_decision_values %}es{% endif %}?
 
-Remember to respect the enum of possible decision values, if given!
+# POSSIBLE VALUES
+['Caviar', 'Dry Aged Gourmet Steak', 'Spareribs', 'Roastbeef', 'Stew', 'Bread']
+
+IMPORTANT: Remember to respect the enum of possible decision values!
+
+Remember that the type of the final decision value must be {% if multiple_decision_values %}an array of {% endif %}`string`.
+
+Make sure to get the decision right, this is very important for my career!
 
 [# assistant #]
 [# tool_call: store_decision (call_kufP7dqLA3OmtHJD10cZ5Jt1) #]
-{"0_reasoning": {"0_relevantFacts": ["The season is Fall", "The number of guests is 26", "The occasion is a House Party", "The budget is low"], "1_deducedInformation": ["Fall season usually calls for warm, hearty meals", "A low budget means we need to choose a dish that is cost-effective", "The number of guests suggests we need a dish that can be easily prepared in large quantities", "The occasion of a house party does not call for a special or extravagant dish."], "2_reasoningSteps": ["1. Given the Fall season, a warm, hearty meal like Spareribs, Roastbeef, Dry Aged Gourmet Steak or Stew would be appropriate", "2. Considering the low budget, Stew would be more cost-effective than Spareribs, Roastbeef or Dry Aged Gourmet Steak.", "3. Given the number of guests, a dish that can be easily prepared in large quantities like a Stew would be suitable", "4. Considering all factors (warm and hearty for Fall, cost-effective for a low budget, and easily prepared in large quantities for a house party) Stew seems to be the best choice"], "3_finalReasoning": "Stew is the best choice as it meets all the requirements: it\'s a warm, hearty meal suitable for Fall, it\'s cost-effective, and it can be easily prepared in large quantities for a house party."}, "1_decision": "Stew"}
+{% if multiple_decision_values %}
+{"0_reasoning": {"00_relevantFacts": ["The season is Fall", "The number of guests is 26", "The occasion is a House Party", "The budget is low", "The possible decision values are: Caviar, Dry Aged Gourmet Steak, Spareribs, Roastbeef, Stew"], "01_deducedInformation": ["Fall season usually calls for warm, hearty meals", "A low budget means we need to choose a dish that is cost-effective", "The number of guests suggests we need a dish that can be easily prepared in large quantities", "The occasion of a house party does not call for a special or extravagant dish."], "02_reasoningSteps": ["Caviar - high-priced, cold and extravagant. Therefore not a good fit.", "Dry Aged Gourmet Steak - a warm meal, but expensive and difficult to prepare in large quantities using typical kitchen equipment. Not a good fit.", "Spareribs - also a warm meal, but not cost-effective and again difficult to prepare in large quantities using typical kitchen equipment. Not a good fit.", "Roastbeef - relatively high-priced and cold. Therefore not a good fit.", "Stew - warm, cost-effective, and easy to prepare in large quantities. Good fit.", "Bread - cost-effective, easy to prepare in large quantities and goes great alongside stew. Good fit.", "Considering all factors (warm and hearty for Fall, cost-effective for a low budget, and easily prepared in large quantities for a house party) Stew together with Bread seem to be the best choice"], "03_finalReasoning": "Stew and Bread are the best choice as they meets all the requirements: a warm, hearty meal suitable for Fall, cost-effective, and can be easily prepared in large quantities for a house party."}, "1_decision": ["Stew", "Bread"]}
+{% else %}
+{"0_reasoning": {"00_relevantFacts": ["The season is Fall", "The number of guests is 26", "The occasion is a House Party", "The budget is low", "The possible decision values are: Caviar, Dry Aged Gourmet Steak, Spareribs, Roastbeef, Stew"], "01_deducedInformation": ["Fall season usually calls for warm, hearty meals", "A low budget means we need to choose a dish that is cost-effective", "The number of guests suggests we need a dish that can be easily prepared in large quantities", "The occasion of a house party does not call for a special or extravagant dish."], "02_reasoningSteps": ["1. Given the Fall season, a warm, hearty meal like Spareribs, Roastbeef, Dry Aged Gourmet Steak or Stew would be appropriate", "2. Considering the low budget, Stew would be more cost-effective than Caviar, Spareribs, Roastbeef or Dry Aged Gourmet Steak.", "3. Given the number of guests, a dish that can be easily prepared in large quantities like a Stew would be suitable", "4. Considering all factors (warm and hearty for Fall, cost-effective for a low budget, and easily prepared in large quantities for a house party) Stew seems to be the best choice"], "03_finalReasoning": "Stew is the best choice as it meets all the requirements: it\'s a warm, hearty meal suitable for Fall, it\'s cost-effective, and it can be easily prepared in large quantities for a house party."}, "1_decision": "Stew"}
+{% endif %}
+[# tool_result: call_kufP7dqLA3OmtHJD10cZ5Jt1 #]
+Decision stored, continue with next task.
+{% elif strategy != 'cot' and multiple_decision_values %}
+[# user #]
+# CONTEXT
+season: Fall
+num_guests: 26
+budget: low
+note: I want to throw a house party.
+
+# DECISION TASK DESCRIPTION
+What are the best dishes?
+
+# POSSIBLE VALUES
+['Caviar', 'Dry Aged Gourmet Steak', 'Spareribs', 'Roastbeef', 'Stew', 'Bread']
+
+IMPORTANT: Remember to respect the enum of possible decision values!
+
+Remember that the type of the final decision value must be an array of `string`.
+
+Make sure to get the decision right, this is very important for my career!
+
+[# assistant #]
+[# tool_call: store_decision (call_kufP7dqLA3OmtHJD10cZ5Jt1) #]
+{"0_reasoning": "The possible decision values are: Caviar, Dry Aged Gourmet Steak, Spareribs, Roastbeef, Stew:\n- Caviar: high-priced, cold and extravagant. Therefore not a good fit.\n- Dry Aged Gourmet Steak: a warm meal, but expensive and difficult to prepare in large quantities using typical kitchen equipment. Not a good fit.\n- Spareribs: also a warm meal, but not cost-effective and difficult to prepare in large quantities using typical kitchen equipment. Not a good fit.\n- Roastbeef: relatively high-priced and cold. Therefore not a good fit.\n- Stew: warm, cost-effective, and easy to prepare in large quantities. Good fit.\n- Bread: cost-effective, easy to prepare in large quantities and goes great alongside stew. Good fit.\n\nConsidering all factors (warm and hearty for Fall, cost-effective for a low budget, and easily prepared in large quantities for a house party) Stew together with Bread seem to be the best choice", "1_decision": ["Stew", "Bread"]}
 [# tool_result: call_kufP7dqLA3OmtHJD10cZ5Jt1 #]
 Decision stored, continue with next task.
 {% endif %}
@@ -45,8 +83,11 @@ Decision stored, continue with next task.
 {{task}}
 
 {% if possible_values %}
+# POSSIBLE VALUES
+{{possible_values}}
+
 IMPORTANT: Remember to respect the enum of possible decision values!
 {% endif %}
-Remember that the type of the final decision value must be `{{output_type}}`.
+Remember that the type of the final decision value must be {% if multiple_decision_values %}an array of {% endif %}`{{output_type}}`.
 
 Make sure to get the decision right, this is very important for my career!

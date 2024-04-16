@@ -1,0 +1,30 @@
+ From:
+DEMO - Sliced Invoices
+Suite 5A-1204
+123 Somewhere Street Your City AZ 12345 admin@slicedinvoices.com
+To:
+Test Business
+123 Somewhere St Melbourne, VIC 3000 test@test.com
+Hrs/Qty Service
+Web Design
+This is a sample description...
+ANZ Bank
+ACC # 1234 1234 BSB # 4321 432
+Invoice Number Order Number Invoice Date Due Date
+INV-3337
+12345
+January 25, 2016 January 31, 2016
+Payment is due within 30 days from date of invoice. Late payment is subject to fees of 5% per month. Thanks for choosing DEMO - Sliced Invoices | admin@slicedinvoices.com
+Page 1/1
+Rate/Price
+$85.00
+Sub Total Tax Total
+Adjust
+0.00%
+Sub Total
+$85.00 $8.50 $93.50
+Invoice
+      Total Due $93.50
+   1.00
+ $85.00
+                                     Paid

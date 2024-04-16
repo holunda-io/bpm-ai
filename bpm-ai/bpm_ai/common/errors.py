@@ -9,3 +9,7 @@ class MissingParameterError(BpmAiError):
 
 class LanguageNotFoundError(BpmAiError):
     pass
+
+
+class FileNotSupportedError(BpmAiError):
+    pass

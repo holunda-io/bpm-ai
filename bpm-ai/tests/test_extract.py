@@ -1,3 +1,4 @@
+import pytest
 from bpm_ai_core.llm.common.message import AssistantMessage
 from bpm_ai_inference.classification.transformers_classifier import TransformersClassifier
 from bpm_ai_inference.ocr.tesseract import TesseractOCR
@@ -7,6 +8,7 @@ from bpm_ai_inference.speech_recognition.faster_whisper import FasterWhisperASR
 from bpm_ai_core.testing.fake_llm import FakeLLM
 from bpm_ai_inference.token_classification.transformers_token_classifier import TransformersTokenClassifier
 
+from bpm_ai.common.errors import FileNotSupportedError
 from bpm_ai.extract.extract import extract_llm, extract_qa
 
 
@@ -21,7 +23,10 @@ async def test_extract(llm):
     )
     result = await extract_llm(
         llm=llm,
-        input_data={"email": "Hey ich bins, der John Meier. Mein 30. Geburtstag war mega!"},
+        input_data={
+            "email": "Hey ich bins, der John Meier. Mein 30. Geburtstag war mega!",
+            "doc": "files/document.txt"
+        },
         output_schema={
             "firstname": "the firstname",
             "lastname": "the lastname",
@@ -64,6 +69,23 @@ async def test_extract_multiple(llm):
     assert result[0]["firstname"] == "Jörg"
     assert result[1]["firstname"] == "Mike"
     assert result[2]["firstname"] == "Sepp"
+
+
+async def test_extract_unsupported_file(llm):
+    llm = llm or FakeLLM(
+        name="openai",
+        responses=[]
+    )
+    with pytest.raises(FileNotSupportedError):
+        await extract_llm(
+            llm=llm,
+            input_data={
+                "doc": "files/document.docx"
+            },
+            output_schema={
+                "firstname": "the firstname"
+            }
+        )
 
 
 async def test_extract_none(llm):
@@ -219,7 +241,7 @@ async def test_extract_ocr():
         ocr=ocr,
         input_data={
             "email": "Hey it's me, John Meier. I attached the invoice. Have a good one.",
-            "invoice": "invoice-simple.webp"
+            "invoice": "files/invoice-simple.webp"
         },
         output_schema={
             "invoice_number": "What is the invoice number?",
@@ -267,7 +289,7 @@ async def test_extract_qa_vqa():
         classifier=classifier,
         input_data={
             "email": "Hey it's me, John Meier. You can find an invoice attached, please pay asap.",
-            "document": "invoice-simple.webp"
+            "document": "files/invoice-simple.webp"
         },
         output_schema={
             "lastname": "What is the family name (not forename)?",
@@ -291,7 +313,7 @@ async def test_extract_vqa():
         vqa=vqa,
         classifier=classifier,
         input_data={
-            "document": "invoice-simple.webp"
+            "document": "files/invoice-simple.webp"
         },
         output_schema={
             "invoice_number": {

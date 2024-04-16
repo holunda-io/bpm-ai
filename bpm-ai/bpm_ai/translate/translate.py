@@ -6,7 +6,8 @@ from bpm_ai_core.tracing.decorators import trace
 from bpm_ai_core.translation.nmt import NMTModel
 
 from bpm_ai.common.errors import MissingParameterError, LanguageNotFoundError
-from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_documents
+from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_documents, prepare_text_blobs, \
+    assert_all_files_processed
 from bpm_ai.translate.util import get_translation_output_schema, get_lang_code
 
 
@@ -30,6 +31,8 @@ async def translate_llm(
     else:
         input_items = await ocr_documents(input_items, ocr)
     input_items = await transcribe_audio(input_items, asr)
+    input_data = prepare_text_blobs(input_data)
+    assert_all_files_processed(input_data)
 
     prompt = Prompt.from_file(
         "translate",
@@ -66,6 +69,8 @@ async def translate_nmt(
 
     input_items = await ocr_documents(input_items, ocr)
     input_items = await transcribe_audio(input_items, asr)
+    input_data = prepare_text_blobs(input_data)
+    assert_all_files_processed(input_data)
 
     try:
         target_language_code = get_lang_code(target_language)

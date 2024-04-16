@@ -1,7 +1,11 @@
+import pytest
+from bpm_ai_core.llm.anthropic_chat.anthropic_chat import ChatAnthropic
+from bpm_ai_core.llm.openai_chat.openai_chat import ChatOpenAI
 from bpm_ai_inference.classification.transformers_classifier import TransformersClassifier
 from bpm_ai_core.llm.common.message import AssistantMessage
 from bpm_ai_core.testing.fake_llm import FakeLLM
 
+from bpm_ai.common.errors import FileNotSupportedError
 from bpm_ai.decide.decide import decide_llm, decide_classifier
 
 
@@ -27,6 +31,29 @@ async def test_decide(llm):
     assert result["decision"] == "yup"
 
 
+async def test_decide_multiple(llm):
+    llm = llm or FakeLLM(
+        name="openai",
+        responses=[
+            AssistantMessage(content={"decision": ["Support", "Samsung"], "reasoning": ""})
+        ]
+    )
+    result = await decide_llm(
+        llm=llm,
+        input_data={"email": "Hello, my S8 does not turn on any more. What can I do? Thank you!"},
+        instructions="What is the email about?",
+        strategy="fast",
+        possible_values=["Return Shipments", "Support", "Samsung", "LG", "Apple", "Complaint"],
+        multiple_decision_values=True,
+        output_type="string"
+    )
+
+    if isinstance(llm, FakeLLM):
+        llm.assert_last_request_contains("Apple")
+
+    assert set(result["decision"]) == {"Support", "Samsung"}
+
+
 async def test_decide_image(llm):
     llm = llm or FakeLLM(
         name="openai",
@@ -38,7 +65,7 @@ async def test_decide_image(llm):
         llm=llm,
         input_data={
             "email": "Hey, you can find the document we talked about attached!",
-            "doc": "invoice-simple.webp"
+            "doc": "files/invoice-simple.webp"
         },
         instructions="What kind of document is that?",
         strategy="cot",
@@ -47,6 +74,49 @@ async def test_decide_image(llm):
     )
 
     assert result["decision"] == "INVOICE"
+
+
+async def test_decide_text(llm):
+    llm = llm or FakeLLM(
+        name="openai",
+        responses=[
+            AssistantMessage(content={"decision": "INVOICE", "reasoning": ""})
+        ]
+    )
+    result = await decide_llm(
+        llm=llm,
+        input_data={
+            "email": "Hey, you can find the document we talked about attached!",
+            "doc": "files/document.txt"
+        },
+        instructions="What kind of document is that?",
+        strategy="cot",
+        possible_values=["APPLICATION", "COMPLAINT", "INVOICE", "TAXES"],
+        output_type="string"
+    )
+
+    #if isinstance(llm, FakeLLM):
+    #    llm.assert_last_request_contains("Payment is due within 30 days")
+
+    assert result["decision"] == "INVOICE"
+
+
+async def test_decide_unsupported_file(llm):
+    llm = llm or FakeLLM(
+        name="openai",
+        responses=[]
+    )
+    with pytest.raises(FileNotSupportedError):
+        await decide_llm(
+            llm=llm,
+            input_data={
+                "doc": "files/document.docx"
+            },
+            instructions="What kind of document is that?",
+            strategy="cot",
+            possible_values=["APPLICATION", "COMPLAINT", "INVOICE", "TAXES"],
+            output_type="string"
+        )
 
 
 async def test_decide_none(llm):
@@ -82,6 +152,21 @@ async def test_decide_classifier():
     )
 
     assert result["decision"] == "adult"
+
+
+async def test_decide_classifier_multiple(llm):
+    classifier = TransformersClassifier()
+
+    result = await decide_classifier(
+        classifier=classifier,
+        input_data={"email": "Hello, my S8 does not turn on any more. What can I do? Thank you!"},
+        question="What is the email about?",
+        possible_values=["Return Shipments", "Support", "Samsung", "LG", "Apple"],
+        multiple_decision_values=True,
+        output_type="string"
+    )
+
+    assert set(result["decision"]) == {"Support", "Samsung"}
 
 
 async def test_decide_classifier_boolean():

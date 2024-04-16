@@ -9,7 +9,8 @@ from bpm_ai_core.tracing.decorators import trace
 from bpm_ai_core.util.markdown import dict_to_md
 
 from bpm_ai.common.errors import MissingParameterError
-from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_documents
+from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_documents, prepare_text_blobs, \
+    assert_all_files_processed
 from bpm_ai.decide.schema import get_cot_decision_output_schema, get_decision_output_schema, remove_order_prefix_from_keys
 
 
@@ -20,6 +21,7 @@ async def decide_llm(
     instructions: str,
     output_type: str,
     possible_values: list[Any] | None = None,
+    multiple_decision_values: bool = False,
     strategy: str | None = None,
     ocr: OCR | None = None,
     asr: ASRModel | None = None
@@ -33,15 +35,17 @@ async def decide_llm(
         return {"decision": None, "reasoning": "No input values present."}
 
     if strategy == 'cot':
-        output_schema = get_cot_decision_output_schema(output_type, possible_values)
+        output_schema = get_cot_decision_output_schema(output_type, possible_values, multiple_decision_values)
     else:
-        output_schema = get_decision_output_schema(output_type, possible_values)
+        output_schema = get_decision_output_schema(output_type, possible_values, multiple_decision_values)
 
     if not ocr and llm.supports_images():
         input_data = prepare_images_for_llm_prompt(input_data)
     else:
         input_data = await ocr_documents(input_data, ocr)
     input_data = await transcribe_audio(input_data, asr)
+    input_data = prepare_text_blobs(input_data)
+    assert_all_files_processed(input_data)
 
     prompt = Prompt.from_file(
         "decide",
@@ -49,19 +53,20 @@ async def decide_llm(
         task=instructions,
         output_type=output_type,
         possible_values=possible_values,
+        multiple_decision_values=multiple_decision_values,
         strategy=strategy
     )
 
     decide_schema = {
         "name": "store_decision",
-        "description": "Stores the final decision value and corresponding reasoning.",
+        "description": f"Stores the final decision value{'s' if multiple_decision_values else ''} and corresponding reasoning.",
         "type": "object",
         "properties": output_schema
     }
 
     message = await llm.generate_message(prompt, output_schema=decide_schema)
 
-    return remove_order_prefix_from_keys(message.content) if message.content else{}
+    return remove_order_prefix_from_keys(message.content) if message.content else {}
 
 
 @trace("bpm-ai-decide", ["classifier"])
@@ -71,6 +76,7 @@ async def decide_classifier(
     output_type: str,
     question: str | None = None,
     possible_values: list[Any] | None = None,
+    multiple_decision_values: bool = False,
     ocr: OCR | None = None,
     asr: ASRModel | None = None
 ) -> dict:
@@ -87,6 +93,8 @@ async def decide_classifier(
 
     input_data = await ocr_documents(input_data, ocr)
     input_data = await transcribe_audio(input_data, asr)
+    input_data = prepare_text_blobs(input_data)
+    assert_all_files_processed(input_data)
 
     input_md = dict_to_md(input_data).strip()
 
@@ -97,18 +105,24 @@ async def decide_classifier(
         input_md,
         possible_values,
         hypothesis_template=hypothesis_template,
-        confidence_threshold=0.1
+        confidence_threshold=0.1,
+        multi_label=multiple_decision_values
     )
-    result_raw = classification.max_label
 
-    if output_type == "boolean":
-        result = (result_raw == 'yes') if result_raw else None
-    elif output_type == "integer":
-        result = int(result_raw) if result_raw else None
-    elif output_type == "number":
-        result = float(result_raw) if result_raw else None
+    def raw_to_output_type(raw: str) -> Any:
+        if output_type == "boolean":
+            return (raw == 'yes') if raw else None
+        elif output_type == "integer":
+            return int(raw) if raw else None
+        elif output_type == "number":
+            return float(raw) if raw else None
+        else:
+            return raw
+
+    if multiple_decision_values:
+        result = [raw_to_output_type(label) for label, _ in classification.labels_scores]
     else:
-        result = result_raw
+        result = raw_to_output_type(classification.max_label)
 
     return {
         "decision": result,

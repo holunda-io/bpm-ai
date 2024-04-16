@@ -1,7 +1,9 @@
+import pytest
 from bpm_ai_core.llm.common.message import ChatMessage, AssistantMessage
 from bpm_ai_core.llm.openai_chat.openai_chat import ChatOpenAI
 from bpm_ai_core.testing.fake_llm import FakeLLM, tool_response
 
+from bpm_ai.common.errors import FileNotSupportedError
 from bpm_ai.compose.compose import compose_llm
 
 
@@ -23,7 +25,8 @@ async def test_compose(llm):
         input_data={
             "email": "Hey, where is my order? Max",
             "answer": "Shipped today",
-            "agent_name": "Lisa"
+            "agent_name": "Lisa",
+            "doc": "files/document.txt"
         },
         template="{greet customer}, {thank customer for mail}.\n{answer question based on provided answer}.\nBest,\n{agent_name}",
         properties={
@@ -66,3 +69,19 @@ async def test_compose_empty_template(llm):
         llm.assert_no_request()
 
     assert result["text"] == ""
+
+
+async def test_compose_unsupported_file(llm):
+    llm = llm or FakeLLM(
+        name="openai",
+        responses=[]
+    )
+    with pytest.raises(FileNotSupportedError):
+        await compose_llm(
+            llm=llm,
+            input_data={
+                "doc": "files/document.docx"
+            },
+            template="{test}",
+            properties={}
+        )
