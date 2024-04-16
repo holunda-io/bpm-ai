@@ -25,7 +25,6 @@ async def test_extract(llm):
         llm=llm,
         input_data={
             "email": "Hey ich bins, der John Meier. Mein 30. Geburtstag war mega!",
-            "doc": "files/document.txt"
         },
         output_schema={
             "firstname": "the firstname",
