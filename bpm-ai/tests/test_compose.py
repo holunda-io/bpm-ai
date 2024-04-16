@@ -26,7 +26,6 @@ async def test_compose(llm):
             "email": "Hey, where is my order? Max",
             "answer": "Shipped today",
             "agent_name": "Lisa",
-            "doc": "files/document.txt"
         },
         template="{greet customer}, {thank customer for mail}.\n{answer question based on provided answer}.\nBest,\n{agent_name}",
         properties={

@@ -11,7 +11,6 @@ async def test_translate(llm):
     input_data = {
         "email": "Hey ich bins, der Jürgen. Ich habe ein neues Auto.",
         "subject": "Hallo!",
-        "doc": "files/document.txt"
     }
     llm = llm or FakeLLM(
         name="openai",

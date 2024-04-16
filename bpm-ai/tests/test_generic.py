@@ -19,7 +19,6 @@ async def test_generic(llm):
         llm=llm,
         input_data={
             "email": "Hey ich bins, der John Meier.",
-            "doc": "files/document.txt"
         },
         instructions="Extract the information and make it all caps.",
         output_schema={

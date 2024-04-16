@@ -59,7 +59,8 @@ async def test_decide_image(llm):
         name="openai",
         responses=[
             AssistantMessage(content={"decision": "INVOICE", "reasoning": ""})
-        ]
+        ],
+        supports_images=True
     )
     result = await decide_llm(
         llm=llm,

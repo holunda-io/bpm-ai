@@ -47,5 +47,5 @@ def prepare_text_blobs(input_data: dict):
 
 def assert_all_files_processed(input_data: dict):
     for v in input_data.values():
-        if is_file(v):
+        if v and is_file(v):
             raise FileNotSupportedError(v)

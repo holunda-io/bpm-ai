@@ -112,8 +112,8 @@ async def test_extract_none(llm):
 
 async def test_extract_no_output_schema(llm):
     input_data = {
-        "doc": "example-text.png",
-        "doc2": "example.mp3",
+        "doc": "files/example-text.png",
+        "doc2": "files/example.mp3",
         "subject": "Test"
     }
     output_schema = {}
@@ -204,8 +204,8 @@ async def test_extract_qa_none():
 
 async def test_extract_qa_no_output_schema():
     input_data = {
-        "doc": "example-text.png",
-        "doc2": "example.mp3",
+        "doc": "files/example-text.png",
+        "doc2": "files/example.mp3",
         "subject": "Test"
     }
     output_schema = {}
