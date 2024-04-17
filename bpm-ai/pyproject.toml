@@ -24,19 +24,6 @@ av = "^11.0.0"
 [tool.poetry.group.dev.dependencies]
 bpm-ai-inference = "0.2.6"
 ctranslate2 = "4.1.0"
-torch = [
-    { version = "=2.2.2", source="pypi", markers = "sys_platform == 'darwin'" },
-    { version = "=2.2.2+cpu", source = "torch-cpu", markers = "sys_platform != 'darwin'" },
-]
-spacy = [
-    { version = "=3.7.4", markers = "sys_platform != 'darwin'" },
-    { version = "=3.7.4", extras = ["apple"], markers = "sys_platform == 'darwin' and platform_machine == 'arm64'" },
-]
-
-[[tool.poetry.source]]
-name = "torch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-priority = "explicit"
 
 
 [tool.poetry.group.test.dependencies]

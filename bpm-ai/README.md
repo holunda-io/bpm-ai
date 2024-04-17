@@ -1,30 +1,20 @@
 # bpm-ai
 _AI task automation for BPM engines._
 
-See [camunda-8-connector-gpt](https://github.com/holunda-io/camunda-8-connector-gpt) for actual integration with the Camunda Platform 8 BPM engine using custom BPMN elements (Connectors).
+See [bpm-ai-connectors-camunda-8](https://github.com/holunda-io/bpm-ai-connectors-camunda-8) for actual integration with the Camunda Platform 8 BPM engine using custom BPMN elements (Connectors).
 
 ## Installation
 Requires Python 3.11.
-### Default
+
 ```bash
 $ pip install bpm-ai
 ```
 
-### For Local Inference
-Install PyTorch (remove index url for CUDA GPU support) and spaCy:
+## Development (install test dependencies)
+### Linux
+Install PyTorch (CPU) and spaCy:
 ```bash
-$ pip install torch --index-url https://download.pytorch.org/whl/cpu
-$ pip install spacy
-```
-
-For Apple Silicon:
-```bash
-$ pip install torch spacy[apple]
-```
-
-Install bpm-ai with inference extra:
-```bash
-$ pip install bpm-ai[inference]
+$ pip install -r requirements.dev.txt
 ```
 
 ---
