@@ -7,7 +7,7 @@ from bpm_ai_core.tracing.tracing import Tracing
 
 
 def messages_to_str(messages: List[ChatMessage]) -> str:
-    return "\n\n".join([m.content for m in messages])
+    return "\n\n".join([str(m.content) for m in messages])
 
 
 def tool_response(name, payload):

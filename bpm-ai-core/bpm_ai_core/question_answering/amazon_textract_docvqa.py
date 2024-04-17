@@ -53,12 +53,9 @@ class AmazonTextractDocVQA(QuestionAnswering):
 
         logger.debug(f"prediction: {prediction}")
 
-        if prediction is None:
-            raise Exception('AmazonTextractDocVQA failed to extract information.')
-
         return QAResult(
-            answer=prediction['Text'],
-            score=prediction['Confidence'] / 100.0,
+            answer=prediction.get('Text', None),
+            score=prediction.get('Confidence', 0.0) / 100.0,
             start_index=None,
             end_index=None,
         )

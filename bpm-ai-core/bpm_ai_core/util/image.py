@@ -8,6 +8,7 @@ from typing import Union, Tuple
 
 from PIL import Image, ImageDraw
 from pdf2image import convert_from_path, convert_from_bytes
+from pypdfium2 import PdfDocument
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +52,11 @@ async def blob_as_images(blob, accept_formats: list[str], return_bytes: bool = F
     if blob.is_pdf():
         # Convert PDF to a list of images
         logger.info("Converting PDF to a list of images...")
-        images = pdf_to_images(await blob.as_bytes())
+        try:
+            images = pdf_to_images(await blob.as_bytes())
+        except Exception:
+            logger.warning("Could not convert to PDF using pypdfium2, trying pdf2image...")
+            images = pdf_to_images_poppler(await blob.as_bytes())
     elif blob.is_image():
         # Load the image from the blob
         images = [Image.open(await blob.as_bytes_io())]
@@ -95,12 +100,17 @@ async def blob_as_images(blob, accept_formats: list[str], return_bytes: bool = F
 
 
 def pdf_to_images(pdf: bytes | str) -> list[Image]:
+    pdf = PdfDocument(pdf)
+    return [page.render(scale=2).to_pil() for page in pdf]
+
+
+def pdf_to_images_poppler(pdf: bytes | str) -> list[Image]:
     with tempfile.TemporaryDirectory() as path:
         if isinstance(pdf, bytes):
             func = convert_from_bytes
         else:
             func = convert_from_path
-        return func(pdf, output_folder=path, dpi=100, use_pdftocairo=True)
+        return func(pdf, output_folder=path, dpi=150, use_pdftocairo=True)
 
 
 def base64_encode_image(image: Image):

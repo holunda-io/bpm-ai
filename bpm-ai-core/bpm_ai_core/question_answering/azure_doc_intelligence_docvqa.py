@@ -68,7 +68,7 @@ class AzureDocVQA(QuestionAnswering):
             prediction = result['documents'][0]['fields'][question]
 
         return QAResult(
-            answer=prediction['content'],
+            answer=prediction.get('content', None),
             score=prediction['confidence'],
             start_index=None,
             end_index=None,
