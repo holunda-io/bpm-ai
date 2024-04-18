@@ -68,25 +68,13 @@ async def blob_as_images(blob, accept_formats: list[str], return_bytes: bool = F
     # Convert images to the accepted formats if necessary
     converted_images = []
     for image in images:
-        if image.format.lower() not in accept_formats:
+        if (not image.format) or (image.format.lower() not in accept_formats):
             # Convert the image to the first accepted format
             output_format = accept_formats[0]
-            logger.info(f"Converting images from {image.format.lower()} to accepted format: {output_format}")
-            if return_bytes:
-                # Convert the image to bytes
-                with io.BytesIO() as output_bytes:
-                    if not image.mode == "RGB":
-                        image = image.convert("RGB")
-                    image.save(output_bytes, format=output_format)
-                    converted_images.append(output_bytes.getvalue())
-            else:
-                # Convert the image to PIL Image object
-                converted_image = io.BytesIO()
-                if not image.mode == "RGB":
-                    image = image.convert("RGB")
-                image.save(converted_image, format=output_format)
-                converted_image.seek(0)
-                converted_images.append(Image.open(converted_image))
+            logger.info(f"Converting images from {image.format.lower() if image.format else 'bitmap'} to accepted format: {output_format}")
+            converted_images.append(
+                convert_image(image, format=output_format, return_bytes=return_bytes)
+            )
         else:
             if return_bytes:
                 # Convert the image to bytes
@@ -111,6 +99,18 @@ def pdf_to_images_poppler(pdf: bytes | str) -> list[Image]:
         else:
             func = convert_from_path
         return func(pdf, output_folder=path, dpi=150, use_pdftocairo=True)
+
+
+def convert_image(image: Image, format="PNG", return_bytes=False):
+    image_buffer = io.BytesIO()
+    if not image.mode == "RGB":
+        image = image.convert("RGB")
+    image.save(image_buffer, format=format, quality=100)
+    image_buffer.seek(0)
+    if return_bytes:
+        return image_buffer.getvalue()
+    else:
+        return Image.open(image_buffer)
 
 
 def base64_encode_image(image: Image):
