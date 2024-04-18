@@ -2,13 +2,13 @@
 
 [[package]]
 name = "accelerate"
-version = "0.29.2"
+version = "0.29.3"
 description = "Accelerate"
 optional = false
 python-versions = ">=3.8.0"
 files = [
-    {file = "accelerate-0.29.2-py3-none-any.whl", hash = "sha256:f34c23e891ed2c60051408aede93b56daa556a1a894bb8b991acfadb37aaee4c"},
-    {file = "accelerate-0.29.2.tar.gz", hash = "sha256:b7b1c5db790906a7c3a36ffc37a23491fa55ed862bfd4c4ad3c63bd4d23772a2"},
+    {file = "accelerate-0.29.3-py3-none-any.whl", hash = "sha256:99d633d4b6126817c5e554487406748be95c8d1d1e659dd2fd60657e35f532dd"},
+    {file = "accelerate-0.29.3.tar.gz", hash = "sha256:1a5a845b06b24b41736b219b2b20fd021ca5dff4070a252445fd6de736e347ac"},
 ]
 
 [package.dependencies]
@@ -216,13 +216,13 @@ files = [
 
 [[package]]
 name = "anthropic"
-version = "0.25.3"
+version = "0.25.5"
 description = "The official Python library for the anthropic API"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "anthropic-0.25.3-py3-none-any.whl", hash = "sha256:044c5872c575dbf7aab11e97469f76e71ceae92d55a8ef13b595bb6fb9ea60e7"},
-    {file = "anthropic-0.25.3.tar.gz", hash = "sha256:d0833de8319541bd3a82a248ea1a25714d80a5ede00cdee71203f458e0917000"},
+    {file = "anthropic-0.25.5-py3-none-any.whl", hash = "sha256:8665a8aee45be6a1f0664b2f8fd740f5b60d5a88fab62f0e647105d769a5c9dd"},
+    {file = "anthropic-0.25.5.tar.gz", hash = "sha256:bc64a17f18a967fae4254bd7464f5c4d39951dacceff22e823434216c4731e38"},
 ]
 
 [package.dependencies]
@@ -492,13 +492,13 @@ tqdm = "*"
 
 [[package]]
 name = "bpm-ai-core"
-version = "2.4.1"
+version = "2.4.2"
 description = "Core AI abstractions and helpers."
 optional = false
 python-versions = "<4.0,>=3.11"
 files = [
-    {file = "bpm_ai_core-2.4.1-py3-none-any.whl", hash = "sha256:06f7ab461cf044f0da311299ef92695c96a4a38aba4c8254cb090daedb1a63fb"},
-    {file = "bpm_ai_core-2.4.1.tar.gz", hash = "sha256:cfc5a7a46f74a6f13bea1f83ccb43e27da94f62e8049c640a8eac58021fa25f0"},
+    {file = "bpm_ai_core-2.4.2-py3-none-any.whl", hash = "sha256:6b912a24e95783b0a41bc68ac42145b8cebe3d873a08497d71e233b7496decbb"},
+    {file = "bpm_ai_core-2.4.2.tar.gz", hash = "sha256:6eaa972739e1ea3f7d4b32af58102ebbfb781e9975c08cb2ba667980ac6ce6d2"},
 ]
 
 [package.dependencies]
@@ -507,6 +507,7 @@ jinja2 = ">=3.1.3,<4.0.0"
 pdf2image = ">=1.17.0,<2.0.0"
 pillow = ">=10.1.0,<11.0.0"
 pydantic = ">=2.6.4,<3.0.0"
+pypdfium2 = ">=4.29.0,<5.0.0"
 requests = ">=2.31.0,<3.0.0"
 tenacity = ">=8.2.3,<9.0.0"
 xmltodict = ">=0.13.0,<0.14.0"
@@ -2666,13 +2667,13 @@ sympy = "*"
 
 [[package]]
 name = "openai"
-version = "1.20.0"
+version = "1.21.2"
 description = "The official Python library for the openai API"
 optional = false
 python-versions = ">=3.7.1"
 files = [
-    {file = "openai-1.20.0-py3-none-any.whl", hash = "sha256:9fcc75256b2425393800e358cd520b02b5ab1a8731921e45aa7ae6aec3ee8187"},
-    {file = "openai-1.20.0.tar.gz", hash = "sha256:d7c0e824b7da3c043731943965c737595cf9631c913b7a1464c502fdf492b9a9"},
+    {file = "openai-1.21.2-py3-none-any.whl", hash = "sha256:65f6bed84ecde0fc20e4f3b458000deb775531aa29154ff4d679e937d7e4370d"},
+    {file = "openai-1.21.2.tar.gz", hash = "sha256:7b6e4d59f3686fcd94efdb2ee61052bf6c9dbb58052b5116fc0d75ba7adbf329"},
 ]
 
 [package.dependencies]
@@ -3181,6 +3182,28 @@ files = [
 
 [package.extras]
 diagrams = ["jinja2", "railroad-diagrams"]
+
+[[package]]
+name = "pypdfium2"
+version = "4.29.0"
+description = "Python bindings to PDFium"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "pypdfium2-4.29.0-py3-none-macosx_10_13_x86_64.whl", hash = "sha256:e62cfc066bcd7f31ad45f56bc131d9d4bfcfb6eed58dc416246ddf0433a47586"},
+    {file = "pypdfium2-4.29.0-py3-none-macosx_11_0_arm64.whl", hash = "sha256:33fa7cfebca8a7c78376b91f459a31bead6daf70080f1d9b35f16e1dd073f707"},
+    {file = "pypdfium2-4.29.0-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:226464d87d5b391c968ea617d61b3076f35af1b4d48eb50a10eb2981cb24eb1f"},
+    {file = "pypdfium2-4.29.0-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:4531f37e7619efda528c16fe37b9296fb87d618263d736486c0360a3f394e1b2"},
+    {file = "pypdfium2-4.29.0-py3-none-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:17d4fa7d891c8d7acf60fa8c641bb8738ef7dbdb3ff258391dfb1c2af49cfb1c"},
+    {file = "pypdfium2-4.29.0-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ae3bae000dc7fed925cdb2fb5303b122b0312f042c2d1557b66e8a7e4901957e"},
+    {file = "pypdfium2-4.29.0-py3-none-musllinux_1_1_aarch64.whl", hash = "sha256:1a89641f352131ceb2ff604195a9fde4350debcb922d06c620cc42ccdd02c887"},
+    {file = "pypdfium2-4.29.0-py3-none-musllinux_1_1_i686.whl", hash = "sha256:c3d5b57f97e32f828e437f5eaf23cb0e35f1103e6cfecd880c6d0ba9151b9ec3"},
+    {file = "pypdfium2-4.29.0-py3-none-musllinux_1_1_x86_64.whl", hash = "sha256:935036f617f8fe5976575ff84e5dfacf205710914415ef285d677edfa7325d46"},
+    {file = "pypdfium2-4.29.0-py3-none-win32.whl", hash = "sha256:e344354222843fd9a7fe756d3c65b66ca01ebee4eb634ed25ac0dfb72023564e"},
+    {file = "pypdfium2-4.29.0-py3-none-win_amd64.whl", hash = "sha256:7d808f3c9fdbc4155ae008c502e63b93bf5aea569f6a62997590ef336f9932cb"},
+    {file = "pypdfium2-4.29.0-py3-none-win_arm64.whl", hash = "sha256:1291a507fd4741399cfed819cecc126b2f1b7c8583dbb6a08b2f5300f91b86cc"},
+    {file = "pypdfium2-4.29.0.tar.gz", hash = "sha256:e99d4c00a6b9123d48ab429c3d9ecac543f3f333ec54b7307089a58a67fca007"},
+]
 
 [[package]]
 name = "pyreadline3"
@@ -4742,4 +4765,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.11"
-content-hash = "5ee3effe2f04b9c70c902b9dda52325b6715634e5683de4cdce8d1dc11242b8a"
+content-hash = "e5aaa12b2e89961ae186a453008304a86e9259dd3c05d300cf3864c7c504e060"
