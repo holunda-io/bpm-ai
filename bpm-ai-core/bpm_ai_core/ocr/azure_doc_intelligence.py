@@ -59,7 +59,7 @@ class AzureOCR(OCR):
             markdown_content = result.content
 
             pages = []
-            for page in result.pages:
+            for i, page in enumerate(result.pages):
                 bboxes = []
                 words = []
                 for word in page.words:
@@ -70,7 +70,7 @@ class AzureOCR(OCR):
                     words.append(word.content)
 
                 page_data = OCRPage(
-                    text=" ".join(words),
+                    text=markdown_content if i == 0 else "",
                     words=words,
                     bboxes=bboxes
                 )
