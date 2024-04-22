@@ -14,7 +14,7 @@ except ImportError:
     pass
 
 
-def get_anthropic_client(endpoint: str = None, api_key: str = None) -> AsyncAnthropic:
+def get_anthropic_client(endpoint: str = None, api_key: str = None) -> "AsyncAnthropic":
     client_map = _clients.get()
     hash_key = hashlib.sha256(((endpoint or "default") + (api_key or "default")).encode()).hexdigest()
     if hash_key in client_map.keys():

@@ -184,7 +184,7 @@ class ChatOpenAI(LLM):
     @staticmethod
     def _openai_tool_calls_to_tool_message(message: OpenAIChatCompletionMessage, tools: List[Tool]) -> AssistantMessage:
         return AssistantMessage(
-            name=", ".join([t.function.name for t in message.tool_calls]),
+            #name=", ".join([t.function.name for t in message.tool_calls]),
             content=message.content,
             tool_calls=[
                 ToolCallMessage(

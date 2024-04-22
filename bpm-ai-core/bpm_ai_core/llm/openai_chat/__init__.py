@@ -15,7 +15,7 @@ except ImportError:
     pass
 
 
-def get_openai_client(endpoint: str = None, api_key: str = None) -> AsyncOpenAI:
+def get_openai_client(endpoint: str = None, api_key: str = None) -> "AsyncOpenAI":
     client_map = _clients.get()
     hash_key = hashlib.sha256(((endpoint or "default") + (api_key or "default")).encode()).hexdigest()
     if hash_key in client_map.keys():
@@ -30,7 +30,7 @@ def get_openai_client(endpoint: str = None, api_key: str = None) -> AsyncOpenAI:
         return client
 
 
-def get_azure_openai_client(azure_endpoint: str, api_version: str, api_key: str) -> AsyncOpenAI:
+def get_azure_openai_client(azure_endpoint: str, api_version: str, api_key: str) -> "AsyncOpenAI":
     client_map = _clients.get()
     hash_key = hashlib.sha256((azure_endpoint + api_key).encode()).hexdigest()
     if hash_key in client_map.keys():

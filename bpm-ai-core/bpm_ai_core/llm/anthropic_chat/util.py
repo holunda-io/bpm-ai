@@ -47,6 +47,8 @@ async def message_to_anthropic_dict(message: ChatMessage) -> dict:
                 raise ValueError(
                     "Elements in ChatMessage.content must be str or Blob (image/pdf/text)"
                 )
+    elif message.content is None:
+        content = None
     else:
         content = None
         logger.warning(

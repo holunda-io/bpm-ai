@@ -1,12 +1,15 @@
+import logging
 from abc import abstractmethod, ABC
 from typing import Any, Type
 
-from tenacity import stop_after_attempt, wait_exponential, retry_if_exception_type, Retrying
+from tenacity import stop_after_attempt, wait_exponential, retry_if_exception_type, Retrying, before_sleep_log
 
 from bpm_ai_core.llm.common.message import ChatMessage, AssistantMessage
 from bpm_ai_core.llm.common.tool import Tool
 from bpm_ai_core.prompt.prompt import Prompt
 from bpm_ai_core.tracing.tracing import Tracing
+
+logger = logging.getLogger(__name__)
 
 
 class LLM(ABC):
@@ -43,7 +46,8 @@ class LLM(ABC):
         for attempt in Retrying(
             wait=wait_exponential(multiplier=1.5, min=2, max=60),
             stop=stop_after_attempt(self.max_retries),
-            retry=retry_if_exception_type(tuple(self.retryable_exceptions))
+            retry=retry_if_exception_type(tuple(self.retryable_exceptions)),
+            before_sleep=before_sleep_log(logger, logging.ERROR),
         ):
             with attempt:
                 completion = await self._generate_message(messages, output_schema, tools, stop, attempt.retry_state.attempt_number)
