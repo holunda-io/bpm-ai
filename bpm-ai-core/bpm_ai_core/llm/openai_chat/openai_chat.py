@@ -125,6 +125,25 @@ class ChatOpenAI(LLM):
             )
         )
 
+    @classmethod
+    def for_groq(
+            cls,
+            model: str = "llama3-70b-8192",
+            temperature: float = DEFAULT_TEMPERATURE,
+            seed: Optional[int] = DEFAULT_SEED,
+            max_retries: int = DEFAULT_MAX_RETRIES,
+    ):
+        return cls(
+            model=model,
+            temperature=temperature,
+            seed=seed,
+            max_retries=max_retries,
+            client=get_openai_client(
+                endpoint="https://api.groq.com/openai/v1",
+                api_key=os.environ["GROQ_API_KEY"]
+            )
+        )
+
     async def _generate_message(
         self,
         messages: List[ChatMessage],
