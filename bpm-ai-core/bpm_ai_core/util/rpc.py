@@ -77,7 +77,7 @@ class RemoteObjectProxy:
     def __getattr__(self, name):
         async def remote_method(*args, **kwargs):
             data = pickle.dumps((self.class_name, name, args, kwargs, self.instance_args, self.instance_kwargs))
-            async with aiohttp.ClientSession() as session:
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=600)) as session:
                 async with session.post(f'http://{self.host}:{self.port}/rpc', data=data) as response:
                     if response.status == 200:
                         result = await response.read()
