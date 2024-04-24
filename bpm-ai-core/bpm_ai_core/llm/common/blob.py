@@ -33,7 +33,6 @@ class Blob(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
-        frozen = True
 
     @property
     def source(self) -> Optional[str]:
@@ -85,20 +84,21 @@ class Blob(BaseModel):
         """Read data as bytes."""
         if self.data is None and (self.path.startswith('http://') or self.path.startswith('https://')):
             response = requests.get(self.path)
-            return response.content
+            self.data = response.content
         elif self.data is None and is_s3_url(self.path):
-            return await read_file_from_s3(self.path)
+            self.data = await read_file_from_s3(self.path)
         elif self.data is None and is_azure_blob_url(self.path):
-            return await read_file_from_azure_blob(self.path)
+            self.data = await read_file_from_azure_blob(self.path)
         elif isinstance(self.data, bytes):
-            return self.data
+            pass
         elif isinstance(self.data, str):
-            return self.data.encode("utf-8")
+            self.data = self.data.encode("utf-8")
         elif self.data is None and self.path:
             with open(str(self.path), "rb") as f:
-                return f.read()
+                self.data = f.read()
         else:
             raise ValueError(f"Unable to get bytes for blob {self}")
+        return self.data
 
     async def as_bytes_io(self) -> BytesIO:
         return BytesIO(await self.as_bytes())
@@ -146,7 +146,6 @@ class Blob(BaseModel):
     def from_data(
             cls,
             data: Union[str, bytes],
-            *,
             mime_type: str,
             path: Optional[str] = None,
             metadata: Optional[dict] = None,

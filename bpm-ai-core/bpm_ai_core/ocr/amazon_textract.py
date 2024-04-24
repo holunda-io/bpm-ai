@@ -4,6 +4,7 @@ from typing_extensions import override
 
 from bpm_ai_core.llm.common.blob import Blob
 from bpm_ai_core.ocr.ocr import OCR, OCRResult, OCRPage
+from bpm_ai_core.util.caching import cachable
 from bpm_ai_core.util.image import blob_as_images
 from bpm_ai_core.util.storage import is_s3_url, parse_s3_url
 
@@ -18,6 +19,7 @@ except ImportError:
 IMAGE_FORMATS = ["png", "jpeg", "tiff"]
 
 
+@cachable()
 class AmazonTextractOCR(OCR):
     def __init__(self, region_name: str = None):
         if not has_textract:

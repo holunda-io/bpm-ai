@@ -4,6 +4,7 @@ from typing import Tuple
 from pydantic import BaseModel
 
 from bpm_ai_core.tracing.decorators import span
+from bpm_ai_core.util.caching import cached
 
 
 class ClassificationResult(BaseModel):
@@ -27,6 +28,7 @@ class ZeroShotClassifier(ABC):
     ) -> ClassificationResult:
         pass
 
+    @cached()
     @span(name="classifier")
     async def classify(
             self,

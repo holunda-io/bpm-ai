@@ -4,6 +4,7 @@ from typing_extensions import override
 
 from bpm_ai_core.llm.common.blob import Blob
 from bpm_ai_core.question_answering.question_answering import QuestionAnswering, QAResult
+from bpm_ai_core.util.caching import cachable
 from bpm_ai_core.util.image import blob_as_images
 
 try:
@@ -18,6 +19,7 @@ logger = logging.getLogger(__name__)
 IMAGE_FORMATS = ["png", "jpeg", "tiff"]
 
 
+@cachable()
 class AmazonTextractDocVQA(QuestionAnswering):
     """
 

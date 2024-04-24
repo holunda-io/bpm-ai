@@ -5,6 +5,7 @@ from typing import Optional
 from typing_extensions import override
 
 from bpm_ai_core.speech_recognition.asr import ASRModel, ASRResult
+from bpm_ai_core.util.caching import cachable
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,7 @@ except ImportError:
     has_openai = False
 
 
+@cachable()
 class OpenAIWhisperASR(ASRModel):
     """
     `OpenAI` Whisper Automatic Speech Recognition (ASR) API for transcribing audio.

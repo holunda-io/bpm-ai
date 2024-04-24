@@ -14,6 +14,7 @@ from bpm_ai_core.llm.common.message import ChatMessage, ToolCallMessage, Assista
 from bpm_ai_core.llm.common.tool import Tool
 from bpm_ai_core.prompt.prompt import Prompt
 from bpm_ai_core.tracing.tracing import Tracing
+from bpm_ai_core.util.caching import cachable
 from bpm_ai_core.util.json_schema import expand_simplified_json_schema
 
 logger = logging.getLogger(__name__)
@@ -28,6 +29,9 @@ except ImportError:
     has_anthropic = False
 
 
+@cachable(
+    exclude_key_params=["max_retries", "client"]
+)
 class ChatAnthropic(LLM):
     """
     `Anthropic` Chat large language models API.

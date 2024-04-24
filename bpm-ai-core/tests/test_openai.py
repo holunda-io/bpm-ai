@@ -64,7 +64,7 @@ async def test_openai_image(filename, info):
 
 
 @pytest.mark.parametrize("filename,info", [("files/test.txt", "jim")])
-async def test_anthropic_text_file(filename, info):
+async def test_openai_text_file(filename, info):
     llm = ChatOpenAI.for_openai(model="gpt-3.5-turbo")
     prompt = Prompt.from_string(f"""\
     [# system #]

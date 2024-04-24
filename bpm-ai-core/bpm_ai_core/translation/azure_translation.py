@@ -4,6 +4,7 @@ import os
 from typing_extensions import override
 
 from bpm_ai_core.translation.nmt import NMTModel
+from bpm_ai_core.util.caching import cachable
 
 try:
     from azure.ai.translation.text import TranslatorCredential
@@ -18,6 +19,7 @@ azure_logger = logging.getLogger('azure')
 azure_logger.setLevel(logging.WARNING)
 
 
+@cachable()
 class AzureTranslation(NMTModel):
     """Azure Text Translation NMT Model"""
 

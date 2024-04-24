@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 from bpm_ai_core.tracing.decorators import span
+from bpm_ai_core.util.caching import cached
 
 
 class NMTModel(ABC):
@@ -9,9 +10,18 @@ class NMTModel(ABC):
     """
 
     @abstractmethod
-    async def _do_translate(self, text: str | list[str], target_language: str) -> str | list[str]:
+    async def _do_translate(
+        self,
+        text: str | list[str],
+        target_language: str
+    ) -> str | list[str]:
         pass
 
+    @cached()
     @span(name="nmt")
-    async def translate(self, text: str | list[str], target_language: str) -> str | list[str]:
+    async def translate(
+        self,
+        text: str | list[str],
+        target_language: str
+    ) -> str | list[str]:
         return await self._do_translate(text, target_language)

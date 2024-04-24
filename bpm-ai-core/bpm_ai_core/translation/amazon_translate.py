@@ -4,6 +4,7 @@ from typing import List
 from typing_extensions import override
 
 from bpm_ai_core.translation.nmt import NMTModel
+from bpm_ai_core.util.caching import cachable
 
 try:
     from aiobotocore.session import get_session
@@ -13,6 +14,7 @@ except ImportError:
     has_amazon_translate = False
 
 
+@cachable()
 class AmazonTranslate(NMTModel):
     """Amazon Translate NMT Model"""
     def __init__(self, region_name: str = None):

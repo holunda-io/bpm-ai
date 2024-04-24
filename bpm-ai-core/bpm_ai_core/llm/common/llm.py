@@ -8,6 +8,7 @@ from bpm_ai_core.llm.common.message import ChatMessage, AssistantMessage
 from bpm_ai_core.llm.common.tool import Tool
 from bpm_ai_core.prompt.prompt import Prompt
 from bpm_ai_core.tracing.tracing import Tracing
+from bpm_ai_core.util.caching import cached
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,7 @@ class LLM(ABC):
         self.max_retries = max_retries
         self.retryable_exceptions = retryable_exceptions or [Exception]
 
+    @cached(disable_if="self.temperature > 0")
     async def generate_message(
         self,
         prompt: Prompt | list[ChatMessage],

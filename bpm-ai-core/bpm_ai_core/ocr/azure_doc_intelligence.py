@@ -6,6 +6,7 @@ from typing_extensions import override
 
 from bpm_ai_core.llm.common.blob import Blob
 from bpm_ai_core.ocr.ocr import OCR, OCRResult, OCRPage
+from bpm_ai_core.util.caching import cachable
 from bpm_ai_core.util.image import blob_as_images
 
 try:
@@ -22,6 +23,7 @@ azure_logger.setLevel(logging.WARNING)
 IMAGE_FORMATS = ["png", "jpeg", "tiff"]
 
 
+@cachable()
 class AzureOCR(OCR):
     def __init__(self, endpoint: str = None):
         if not has_azure_doc:

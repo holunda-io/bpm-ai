@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 from bpm_ai_core.llm.common.blob import Blob
 from bpm_ai_core.tracing.decorators import span
+from bpm_ai_core.util.caching import cached, calculate_cache_key
 
 
 class OCRPage(BaseModel):
@@ -35,6 +36,14 @@ class OCR(ABC):
     ) -> OCRResult:
         pass
 
+    async def _cache_key(self, blob_or_path: Blob | str, *args, **kwargs) -> str:
+        if isinstance(blob_or_path, str):
+            blob = Blob.from_path_or_url(blob_or_path)
+        else:  # Blob
+            blob = blob_or_path
+        return f"blob_bytes={await blob.as_bytes()}"
+
+    @cached(exclude=["blob_or_path"], key_func=_cache_key)
     @span(name="ocr")
     async def process(
             self,

@@ -139,3 +139,6 @@ class Prompt:
             raise FileNotFoundError(f"No prompt file found at {filename}")
         with open(filename, 'r') as f:
             return Template(f.read())
+
+    def __repr__(self):
+        return f"{self.__class__.__qualname__}(template_vars={self.template_vars}, path={self.path}, template_str={self.template_str})"

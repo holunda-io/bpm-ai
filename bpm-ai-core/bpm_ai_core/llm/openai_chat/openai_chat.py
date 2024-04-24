@@ -13,6 +13,7 @@ from bpm_ai_core.llm.openai_chat._constants import DEFAULT_MODEL, DEFAULT_TEMPER
     DEFAULT_MAX_RETRIES, AZURE_API_KEY_ENV_VAR, OPENAI_COMPATIBLE_API_KEY_ENV_VAR
 from bpm_ai_core.llm.openai_chat.util import messages_to_openai_dicts, json_schema_to_openai_function
 from bpm_ai_core.tracing.tracing import Tracing
+from bpm_ai_core.util.caching import cachable
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,9 @@ except ImportError:
     has_openai = False
 
 
+@cachable(
+    exclude_key_params=["max_retries", "client"]
+)
 class ChatOpenAI(LLM):
     """
     `OpenAI` Chat large language models API.
@@ -127,11 +131,11 @@ class ChatOpenAI(LLM):
 
     @classmethod
     def for_groq(
-            cls,
-            model: str = "llama3-70b-8192",
-            temperature: float = DEFAULT_TEMPERATURE,
-            seed: Optional[int] = DEFAULT_SEED,
-            max_retries: int = DEFAULT_MAX_RETRIES,
+        cls,
+        model: str = "llama3-70b-8192",
+        temperature: float = DEFAULT_TEMPERATURE,
+        seed: Optional[int] = DEFAULT_SEED,
+        max_retries: int = DEFAULT_MAX_RETRIES,
     ):
         return cls(
             model=model,

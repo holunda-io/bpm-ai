@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 
 from pydantic import BaseModel
 
+from bpm_ai_core.util.caching import cached
+
 
 class TokenSpan(BaseModel):
     label: str
@@ -29,6 +31,7 @@ class ZeroShotTokenClassifier(ABC):
     ) -> TokenClassificationResult:
         pass
 
+    @cached()
     async def classify(
             self,
             text: str,
