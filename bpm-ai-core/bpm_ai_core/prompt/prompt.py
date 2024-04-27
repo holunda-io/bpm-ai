@@ -1,3 +1,4 @@
+import glob
 import inspect
 import os
 import re
@@ -17,10 +18,11 @@ environment.DEFAULT_FILTERS['xml'] = dict_to_xml
 
 class Prompt:
 
-    def __init__(self, kwargs: Dict[str, Any], path: str | None = None, template_str: str | None = None) -> None:
-        self.path = path
+    def __init__(self, kwargs: dict[str, Any], template_str: str = None, path: str = None, prompt_templates: dict = None) -> None:
         self.template_str = template_str
         self.template_vars = kwargs
+        self.path = path
+        self.prompt_templates = prompt_templates
 
     @classmethod
     def from_file(cls, path: str, **kwargs):
@@ -32,14 +34,23 @@ class Prompt:
         current_dir = os.path.dirname(os.path.abspath(caller_filename))
         file_path = os.path.join(current_dir, path)
 
-        return cls(kwargs, path=file_path)
+        prompt_templates = {}
+
+        default_file_path = f"{file_path}.prompt"
+        specific_file_path = f"{file_path}.*.prompt"
+        prompt_files = glob.glob(specific_file_path) + [default_file_path]
+        for prompt_file in prompt_files:
+            with open(prompt_file, 'r') as p:
+                prompt_templates[os.path.basename(prompt_file)] = p.read()
+
+        return cls(kwargs, path=path, prompt_templates=prompt_templates)
 
     @classmethod
     def from_string(cls, template: str, **kwargs):
         return cls(kwargs, template_str=template)
 
     def format(self, llm_name: str = "") -> List[ChatMessage]:
-        template = self.load_template(self.path, llm_name) if self.path else Template(self.template_str)
+        template = self.load_template(self.path, llm_name)
         full_prompt = template.render(self.template_vars)
 
         regex = r'\[#\s*(user|assistant|system|tool_result:.*|)\s*#\]'
@@ -130,15 +141,13 @@ class Prompt:
 
         return [m for m in messages if m]
 
-    @staticmethod
-    def load_template(path: str, llm_name: str) -> Template:
-        default_path = f"{path}.prompt"
-        llm_specific_path = f"{path}.{llm_name}.prompt"
-        filename = llm_specific_path if os.path.exists(llm_specific_path) else default_path
-        if not os.path.exists(filename):
-            raise FileNotFoundError(f"No prompt file found at {filename}")
-        with open(filename, 'r') as f:
-            return Template(f.read())
+    def load_template(self, path: str, llm_name: str) -> Template:
+        default_prompt = f"{path}.prompt"
+        llm_specific_prompt = f"{path}.{llm_name}.prompt"
+        prompt = self.prompt_templates.get(llm_specific_prompt, self.prompt_templates.get(default_prompt))
+        if not prompt:
+            raise FileNotFoundError(f"No prompt file {path} found for llm {llm_name}")
+        return Template(prompt)
 
     def __repr__(self):
         return f"{self.__class__.__qualname__}(template_vars={self.template_vars}, path={self.path}, template_str={self.template_str})"

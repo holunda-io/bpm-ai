@@ -11,7 +11,7 @@ def test_prompt_format():
         "task": "Do the task"
     }
     prompt = Prompt.from_file("test", **template_vars)
-    messages = prompt.format()
+    messages = prompt.format("openai")
 
     assert len(messages) == 9
 
@@ -102,6 +102,13 @@ def test_prompt_format():
     assert messages[0].content[1].is_image()
     assert messages[8].content[2] == "Do the task"
 
+
+def test_prompt_format_default_prompt():
+    prompt = Prompt.from_file("test")
+    messages = prompt.format()
+
+    assert len(messages) == 1
+    assert messages[0].content == "foo"
 
 def test_prompt_filter():
     input_dict = {
