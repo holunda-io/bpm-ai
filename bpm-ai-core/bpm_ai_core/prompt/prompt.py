@@ -50,7 +50,7 @@ class Prompt:
         return cls(kwargs, template_str=template)
 
     def format(self, llm_name: str = "") -> List[ChatMessage]:
-        template = self.load_template(self.path, llm_name)
+        template = self.load_template(llm_name)
         full_prompt = template.render(self.template_vars)
 
         regex = r'\[#\s*(user|assistant|system|tool_result:.*|)\s*#\]'
@@ -141,12 +141,15 @@ class Prompt:
 
         return [m for m in messages if m]
 
-    def load_template(self, path: str, llm_name: str) -> Template:
-        default_prompt = f"{path}.prompt"
-        llm_specific_prompt = f"{path}.{llm_name}.prompt"
-        prompt = self.prompt_templates.get(llm_specific_prompt, self.prompt_templates.get(default_prompt))
-        if not prompt:
-            raise FileNotFoundError(f"No prompt file {path} found for llm {llm_name}")
+    def load_template(self, llm_name: str) -> Template:
+        if self.path:
+            default_prompt = f"{self.path}.prompt"
+            llm_specific_prompt = f"{self.path}.{llm_name}.prompt"
+            prompt = self.prompt_templates.get(llm_specific_prompt, self.prompt_templates.get(default_prompt))
+            if not prompt:
+                raise FileNotFoundError(f"No prompt file {self.path} found for llm {llm_name}")
+        else:
+            prompt = self.template_str
         return Template(prompt)
 
     def __repr__(self):
