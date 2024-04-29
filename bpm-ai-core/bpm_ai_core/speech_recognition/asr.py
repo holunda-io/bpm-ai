@@ -22,7 +22,8 @@ class ASRModel(ABC):
     async def _do_transcribe(self, audio: io.BytesIO, language: Optional[str] = None) -> ASRResult:
         pass
 
-    async def _cache_key(self, audio_or_path: io.BytesIO | str, *args, **kwargs) -> str:
+    @staticmethod
+    async def _cache_key(audio_or_path: io.BytesIO | str, *args, **kwargs) -> str:
         if isinstance(audio_or_path, str):
             return f"path={audio_or_path}"
         else:  # BytesIO
