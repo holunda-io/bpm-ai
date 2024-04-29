@@ -13,16 +13,16 @@ class ClassificationResult(BaseModel):
     labels_scores: list[Tuple[str, float]]
 
 
-class ZeroShotClassifier(ABC):
+class TextClassifier(ABC):
     """
-    Zero Shot Classification Model
+    (Zero Shot) Text Classification Model
     """
 
     @abstractmethod
     async def _do_classify(
             self,
             text: str,
-            classes: list[str],
+            classes: list[str] = None,
             hypothesis_template: str | None = None,
             multi_label: bool = False
     ) -> ClassificationResult:
@@ -33,7 +33,7 @@ class ZeroShotClassifier(ABC):
     async def classify(
             self,
             text: str,
-            classes: list[str],
+            classes: list[str] = None,
             confidence_threshold: float | None = None,
             hypothesis_template: str | None = None,
             multi_label: bool = False

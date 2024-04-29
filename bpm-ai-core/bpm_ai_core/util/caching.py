@@ -6,6 +6,8 @@ import os
 
 from diskcache import Cache
 
+from bpm_ai_core.llm.common.blob import Blob
+
 logger = logging.getLogger(__name__)
 
 
@@ -54,7 +56,7 @@ def cached(exclude: list[str] = None, key_func=None, disable_if: str = None):
                     cache_key_components.append(f"{param_name}={param_value}")
 
             if key_func:
-                custom_key_part = await key_func(self, *args, **kwargs)
+                custom_key_part = await key_func(*args, **kwargs)
                 cache_key_components.append(custom_key_part)
 
             logger.debug(f"Cache key components: {cache_key_components}")
@@ -108,3 +110,11 @@ def cachable(exclude_key_params=None):
         return cls
 
     return decorator
+
+
+async def blob_cache_key(blob_or_path: Blob | str, *args, **kwargs) -> str:
+    if isinstance(blob_or_path, str):
+        blob = Blob.from_path_or_url(blob_or_path)
+    else:  # Blob
+        blob = blob_or_path
+    return f"blob_bytes={await blob.as_bytes()}"
