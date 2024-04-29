@@ -75,6 +75,9 @@ class RemoteObjectProxy:
         self.instance_kwargs = instance_kwargs or {}
 
     def __getattr__(self, name):
+        if name == '__slots__':
+            return ['class_name', 'host', 'port', 'instance_args', 'instance_kwargs']
+
         async def remote_method(*args, **kwargs):
             data = pickle.dumps((self.class_name, name, args, kwargs, self.instance_args, self.instance_kwargs))
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=600)) as session:
@@ -85,7 +88,11 @@ class RemoteObjectProxy:
                     else:
                         error_message = await response.text()
                         raise Exception(f"Remote method call failed: {error_message}")
+
         return remote_method
+
+    def __str__(self):
+        return f"RemoteObjectProxy(class_name={self.class_name}, host={self.host}, port={self.port}, instance_args={self.instance_args}, instance_kwargs={self.instance_kwargs})"
 
 
 def create_remote_object_daemon(
