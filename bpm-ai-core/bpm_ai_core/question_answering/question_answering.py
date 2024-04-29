@@ -27,13 +27,14 @@ class QuestionAnswering(ABC):
     ) -> QAResult:
         pass
 
-    async def _cache_key(self, context_str_or_blob: str | Blob, *args, **kwargs) -> str:
+    @staticmethod
+    async def _cache_key(context_str_or_blob: str | Blob, *args, **kwargs) -> str:
         if isinstance(context_str_or_blob, str):
             return f"context={context_str_or_blob}"
         else:  # Blob
             return f"blob_bytes={await context_str_or_blob.as_bytes()}"
 
-    @cached(exclude=["context_str_or_blob"])
+    @cached(exclude=["context_str_or_blob"], key_func=_cache_key)
     @span(name="qa")
     async def answer(
         self,
