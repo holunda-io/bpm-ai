@@ -52,7 +52,7 @@ def cached(exclude: list[str] = None, key_func=None, disable_if: str = None):
             bound_args = sig.bind_partial(self, *args, **kwargs)
             bound_args.apply_defaults()
             for param_name, param_value in bound_args.arguments.items():
-                if param_name not in exclude_params and param_name is not "self":
+                if param_name not in exclude_params and param_name != "self":
                     cache_key_components.append(f"{param_name}={param_value}")
 
             if key_func:
