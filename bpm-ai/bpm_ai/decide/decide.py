@@ -1,11 +1,13 @@
 from typing import Any
 
-from bpm_ai_core.classification.zero_shot_classifier import ZeroShotClassifier
+from bpm_ai_core.image_classification.image_classifier import ImageClassifier
 from bpm_ai_core.llm.common.llm import LLM
 from bpm_ai_core.ocr.ocr import OCR
 from bpm_ai_core.prompt.prompt import Prompt
 from bpm_ai_core.speech_recognition.asr import ASRModel
+from bpm_ai_core.text_classification.text_classifier import TextClassifier
 from bpm_ai_core.tracing.decorators import trace
+from bpm_ai_core.util.file import is_supported_img_file
 from bpm_ai_core.util.markdown import dict_to_md
 
 from bpm_ai.common.errors import MissingParameterError
@@ -71,47 +73,70 @@ async def decide_llm(
 
 @trace("bpm-ai-decide", ["classifier"])
 async def decide_classifier(
-    classifier: ZeroShotClassifier,
     input_data: dict[str, str | dict | None],
     output_type: str,
+    classifier: TextClassifier = None,
+    image_classifier: ImageClassifier = None,
     question: str | None = None,
     possible_values: list[Any] | None = None,
     multiple_decision_values: bool = False,
     ocr: OCR | None = None,
     asr: ASRModel | None = None
 ) -> dict:
+    if (classifier and image_classifier) or not (classifier or image_classifier):
+        raise ValueError("Must provide either a TextClassifier or an ImageClassifier")
+    if image_classifier and multiple_decision_values:
+        raise ValueError("ImageClassifier does not support multiple decision values")
+
+    zero_shot = (possible_values is not None) or output_type == "boolean"
+
     if not output_type or output_type.isspace():
         raise MissingParameterError("output type is required")
-    if not possible_values and output_type != "boolean":
-        raise MissingParameterError("List of possible values must be specified for classifier (except boolean)")
-    if output_type == "boolean":
+    if zero_shot and output_type == "boolean":
         possible_values = ["yes", "no"]
-    possible_values = [str(v) for v in possible_values]
+    if zero_shot:
+        possible_values = [str(v) for v in possible_values]
 
     if all(value is None for value in input_data.values()):
         return {"decision": None, "reasoning": "No input values present."}
 
-    input_data = await ocr_documents(input_data, ocr)
-    input_data = await transcribe_audio(input_data, asr)
-    input_data = prepare_text_blobs(input_data)
-    assert_all_files_processed(input_data)
+    if image_classifier and not classifier:
+        image_path_or_url = list(input_data.values())[0]
+        if len(input_data) > 1 or not isinstance(image_path_or_url, str) or not is_supported_img_file(image_path_or_url):
+            raise ValueError("Must provide exactly one image file path variable as input when using an Image Classifier.")
 
-    input_md = dict_to_md(input_data).strip()
+        hypothesis_template = "Based on this image, the question '" + question + "' should be answered with '{}'" \
+            if question else "This is an image of {}."
 
-    hypothesis_template = "In this example the question '" + question + "' should be answered with '{}'" \
-        if question else "This example is {}."
+        classification = await image_classifier.classify(
+            blob_or_path=image_path_or_url,
+            classes=possible_values,
+            hypothesis_template=hypothesis_template,
+            confidence_threshold=0.1,
+        )
 
-    classification = await classifier.classify(
-        input_md,
-        possible_values,
-        hypothesis_template=hypothesis_template,
-        confidence_threshold=0.1,
-        multi_label=multiple_decision_values
-    )
+    else:  # text classifier
+        input_data = await ocr_documents(input_data, ocr)
+        input_data = await transcribe_audio(input_data, asr)
+        input_data = prepare_text_blobs(input_data)
+        assert_all_files_processed(input_data)
+
+        input_md = dict_to_md(input_data).strip()
+
+        hypothesis_template = "In this example the question '" + question + "' should be answered with '{}'" \
+            if question else "This example is {}."
+
+        classification = await classifier.classify(
+            input_md,
+            possible_values,
+            hypothesis_template=hypothesis_template,
+            confidence_threshold=0.1,
+            multi_label=multiple_decision_values
+        )
 
     def raw_to_output_type(raw: str) -> Any:
         if output_type == "boolean":
-            return (raw == 'yes') if raw else None
+            return (raw.lower() == 'yes' or raw.lower() == "true") if raw else None
         elif output_type == "integer":
             return int(raw) if raw else None
         elif output_type == "number":

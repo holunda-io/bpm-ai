@@ -1,9 +1,8 @@
 import pytest
-from bpm_ai_core.llm.anthropic_chat.anthropic_chat import ChatAnthropic
-from bpm_ai_core.llm.openai_chat.openai_chat import ChatOpenAI
-from bpm_ai_inference.classification.transformers_classifier import TransformersClassifier
 from bpm_ai_core.llm.common.message import AssistantMessage
 from bpm_ai_core.testing.fake_llm import FakeLLM
+from bpm_ai_inference.classification.transformers_text_classifier import TransformersClassifier
+from bpm_ai_inference.image_classification.transformers_image_classifier import TransformersImageClassifier
 
 from bpm_ai.common.errors import FileNotSupportedError
 from bpm_ai.decide.decide import decide_llm, decide_classifier
@@ -155,6 +154,34 @@ async def test_decide_classifier():
     assert result["decision"] == "adult"
 
 
+async def test_decide_image_classifier_zero_shot():
+    image_classifier = TransformersImageClassifier()
+
+    result = await decide_classifier(
+        classifier=None,
+        image_classifier=image_classifier,
+        input_data={"image": "files/example-text.png"},
+        question="What kind of image is that?",
+        possible_values=["dummy", "invoice", "dog", "house"],
+        output_type="string"
+    )
+
+    assert result["decision"] == "dummy"
+
+
+async def test_decide_image_classifier():
+    image_classifier = TransformersImageClassifier(model="Benjoyo/test-image-classifier-2", zero_shot=False)
+
+    result = await decide_classifier(
+        classifier=None,
+        image_classifier=image_classifier,
+        input_data={"image": "files/invoice.png"},
+        output_type="string"
+    )
+
+    assert result["decision"] == "Anderes Dokument"
+
+
 async def test_decide_classifier_multiple(llm):
     classifier = TransformersClassifier()
 
@@ -180,7 +207,7 @@ async def test_decide_classifier_boolean():
         output_type="boolean"
     )
 
-    assert result["decision"] == True
+    assert result["decision"] is True
 
 
 async def test_decide_classifier_float():

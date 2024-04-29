@@ -1,6 +1,6 @@
 import pytest
 from bpm_ai_core.llm.common.message import AssistantMessage
-from bpm_ai_inference.classification.transformers_classifier import TransformersClassifier
+from bpm_ai_inference.classification.transformers_text_classifier import TransformersClassifier
 from bpm_ai_inference.ocr.tesseract import TesseractOCR
 from bpm_ai_inference.question_answering.transformers_docvqa import TransformersDocVQA
 from bpm_ai_inference.question_answering.transformers_qa import TransformersExtractiveQA

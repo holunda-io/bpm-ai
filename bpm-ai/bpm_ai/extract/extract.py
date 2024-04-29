@@ -1,14 +1,13 @@
-import itertools
 import re
-from typing import Callable, Any
+from typing import Any
 
-from bpm_ai_core.classification.zero_shot_classifier import ZeroShotClassifier
 from bpm_ai_core.llm.common.blob import Blob
 from bpm_ai_core.question_answering.question_answering import QuestionAnswering
 from bpm_ai_core.llm.common.llm import LLM
 from bpm_ai_core.ocr.ocr import OCR
 from bpm_ai_core.prompt.prompt import Prompt
 from bpm_ai_core.speech_recognition.asr import ASRModel
+from bpm_ai_core.text_classification.text_classifier import TextClassifier
 from bpm_ai_core.token_classification.zero_shot_token_classifier import ZeroShotTokenClassifier
 from bpm_ai_core.tracing.decorators import trace
 from bpm_ai_core.util.file import is_supported_img_file
@@ -76,7 +75,7 @@ async def extract_llm(
 @trace("bpm-ai-extract", ["extractive-qa"])
 async def extract_qa(
     qa: QuestionAnswering,
-    classifier: ZeroShotClassifier,
+    classifier: TextClassifier,
     input_data: dict[str, str | dict | None],
     output_schema: dict[str, str | dict],
     multiple: bool = False,

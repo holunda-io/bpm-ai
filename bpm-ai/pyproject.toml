@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bpm-ai"
-version = "1.6.3"
+version = "1.7.0"
 description = "AI task automation for BPM engines."
 authors = ["Bennet Krause <bennet.krause@holisticon.de>"]
 repository = "https://github.com/holunda-io/bpm-ai"
@@ -10,10 +10,10 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "~3.11"
-bpm-ai-core = "2.5.0"
+bpm-ai-core = "2.6.1"
 openai = "^1.22.0"
 anthropic = "^0.25.6"
-langfuse = "^2.25.0"
+langfuse = "^2.27.2"
 amazon-textract-prettyprinter = "^0.1.9"
 aiobotocore = "^2.12.3"
 azure-storage-blob = "^12.19.1"
@@ -22,7 +22,7 @@ azure-ai-documentintelligence = "^1.0.0b2"
 av = "^11.0.0"
 
 [tool.poetry.group.dev.dependencies]
-bpm-ai-inference = "0.2.6"
+bpm-ai-inference = "0.3.0"
 ctranslate2 = "4.1.0"
 
 

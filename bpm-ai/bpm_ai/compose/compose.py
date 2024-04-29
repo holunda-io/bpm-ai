@@ -1,7 +1,9 @@
+import json
 import re
 from typing import TypedDict, Callable
 
 from bpm_ai_core.llm.common.llm import LLM
+from bpm_ai_core.llm.common.message import UserMessage
 from bpm_ai_core.ocr.ocr import OCR
 from bpm_ai_core.prompt.prompt import Prompt
 from bpm_ai_core.speech_recognition.asr import ASRModel
