@@ -6,6 +6,7 @@ from bpm_ai_inference.question_answering.transformers_docvqa import Transformers
 from bpm_ai_inference.question_answering.transformers_qa import TransformersExtractiveQA
 from bpm_ai_inference.speech_recognition.faster_whisper import FasterWhisperASR
 from bpm_ai_core.testing.fake_llm import FakeLLM
+from bpm_ai_inference.token_classification.gliner_token_classifier import GlinerTokenClassifier
 from bpm_ai_inference.token_classification.transformers_token_classifier import TransformersTokenClassifier
 
 from bpm_ai.common.errors import FileNotSupportedError
@@ -265,7 +266,7 @@ async def test_extract_qa_multiple():
 
     qa = TransformersExtractiveQA()
     classifier = TransformersClassifier()
-    token_classifier = TransformersTokenClassifier()
+    token_classifier = GlinerTokenClassifier()
     actual = await extract_qa(
         qa=qa,
         classifier=classifier,
@@ -273,7 +274,7 @@ async def test_extract_qa_multiple():
         input_data={"email": text},
         output_schema=schema,
         multiple=True,
-        multiple_description="Meal Order"
+        multiple_description="Meal"
     )
     assert actual == [{'product': 'Pizza', 'price_eur': 10.99}, {'product': 'Steak', 'price_eur': 28.89}]
 
