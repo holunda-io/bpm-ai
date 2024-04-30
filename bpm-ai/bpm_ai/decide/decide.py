@@ -144,7 +144,9 @@ async def decide_classifier(
         else:
             return raw
 
-    if multiple_decision_values:
+    if not classification:
+        result = None
+    elif multiple_decision_values:
         result = [raw_to_output_type(label) for label, _ in classification.labels_scores]
     else:
         result = raw_to_output_type(classification.max_label)
