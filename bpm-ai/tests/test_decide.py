@@ -238,3 +238,16 @@ async def test_decide_classifier_none():
 
     assert result["decision"] is None
     assert result["reasoning"] == "No input values present."
+
+
+async def test_decide_classifier_textfile():
+    classifier = TransformersClassifier()
+
+    result = await decide_classifier(
+        classifier=classifier,
+        input_data={"doc": "files/document.txt"},
+        possible_values=["invoice", "letter"],
+        output_type="string"
+    )
+
+    assert result["decision"] is "invoice"

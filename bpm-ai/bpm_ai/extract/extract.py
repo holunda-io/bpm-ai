@@ -16,7 +16,7 @@ from bpm_ai_core.util.markdown import dict_to_md
 
 from bpm_ai.common.errors import MissingParameterError
 from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_documents, prepare_text_blobs, \
-    assert_all_files_processed
+    assert_all_files_processed, replace_text_blobs
 from bpm_ai.extract.util import merge_dicts, strip_non_numeric_chars, create_json_object
 
 
@@ -94,7 +94,7 @@ async def extract_qa(
     else:
         input_data = await ocr_documents(input_data, ocr)
     input_data = await transcribe_audio(input_data, asr)
-    input_data = prepare_text_blobs(input_data)
+    input_data = await replace_text_blobs(input_data)
     assert_all_files_processed(input_data)
 
     if not output_schema:
@@ -131,7 +131,7 @@ async def extract_qa(
 
         if field_type == "integer":
             try:
-                return int(strip_non_numeric_chars(qa_result.answer))
+                return int(strip_non_numeric_chars(qa_result.answer))  # todo should also accept and round floats
             except ValueError:
                 return None
         elif field_type == "number":

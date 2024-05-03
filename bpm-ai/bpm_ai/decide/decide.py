@@ -12,7 +12,7 @@ from bpm_ai_core.util.markdown import dict_to_md
 
 from bpm_ai.common.errors import MissingParameterError
 from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_documents, prepare_text_blobs, \
-    assert_all_files_processed
+    assert_all_files_processed, replace_text_blobs
 from bpm_ai.decide.schema import get_cot_decision_output_schema, get_decision_output_schema, remove_order_prefix_from_keys
 
 
@@ -118,7 +118,7 @@ async def decide_classifier(
     else:  # text classifier
         input_data = await ocr_documents(input_data, ocr)
         input_data = await transcribe_audio(input_data, asr)
-        input_data = prepare_text_blobs(input_data)
+        input_data = await replace_text_blobs(input_data)
         assert_all_files_processed(input_data)
 
         input_md = dict_to_md(input_data).strip()

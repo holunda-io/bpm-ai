@@ -1,3 +1,4 @@
+from bpm_ai_core.llm.common.blob import Blob
 from bpm_ai_core.ocr.ocr import OCR
 from bpm_ai_core.speech_recognition.asr import ASRModel
 from bpm_ai_core.util.file import is_supported_audio_file, is_file, is_supported_text_file
@@ -40,6 +41,14 @@ def prepare_text_blobs(input_data: dict):
     """
     return {
         k: f"[# blob {v} #]"
+        if (isinstance(v, str) and is_supported_text_file(v))
+        else v for k, v in input_data.items()
+    }
+
+
+async def replace_text_blobs(input_data: dict):
+    return {
+        k: (await Blob.from_path_or_url(v).as_bytes()).decode("utf-8")
         if (isinstance(v, str) and is_supported_text_file(v))
         else v for k, v in input_data.items()
     }

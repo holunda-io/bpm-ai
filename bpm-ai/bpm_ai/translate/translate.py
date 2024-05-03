@@ -7,7 +7,7 @@ from bpm_ai_core.translation.nmt import NMTModel
 
 from bpm_ai.common.errors import MissingParameterError, LanguageNotFoundError
 from bpm_ai.common.multimodal import transcribe_audio, prepare_images_for_llm_prompt, ocr_documents, prepare_text_blobs, \
-    assert_all_files_processed
+    assert_all_files_processed, replace_text_blobs
 from bpm_ai.translate.util import get_translation_output_schema, get_lang_code
 
 
@@ -69,7 +69,7 @@ async def translate_nmt(
 
     input_items = await ocr_documents(input_items, ocr)
     input_items = await transcribe_audio(input_items, asr)
-    input_data = prepare_text_blobs(input_data)
+    input_data = await replace_text_blobs(input_data)
     assert_all_files_processed(input_data)
 
     try:
