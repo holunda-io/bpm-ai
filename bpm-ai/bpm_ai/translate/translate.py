@@ -69,8 +69,8 @@ async def translate_nmt(
 
     input_items = await ocr_documents(input_items, ocr)
     input_items = await transcribe_audio(input_items, asr)
-    input_data = await replace_text_blobs(input_data)
-    assert_all_files_processed(input_data)
+    input_items = await replace_text_blobs(input_items)
+    assert_all_files_processed(input_items)
 
     try:
         target_language_code = get_lang_code(target_language)
