@@ -80,6 +80,30 @@ async def test_translate_none(llm):
     assert result["subject"] is None
 
 
+async def test_translate_image(llm):
+    input_data = {
+        "doc": "files/invoice.png",
+    }
+    llm = llm or FakeLLM(
+        name="openai",
+        supports_images=True,
+        responses=[
+            AssistantMessage(
+                content={"doc": "Rechnung\n\nVon:\nDEMO - Sliced Invoices\nSuite 5A-1204\n123 Somewhere Street\nYour City AZ 12345\nadmin@slicedinvoices.com\n\nRechnungsnummer: INV-3337"}
+            )
+        ]
+    )
+    result = await translate_llm(
+        llm=llm,
+        input_data=input_data,
+        target_language="German",
+    )
+    #if isinstance(llm, FakeLLM):
+    #    llm.assert_last_request_contains("admin@slicedinvoices.com")
+
+    assert "Rechnung" in result["doc"]
+
+
 async def test_translate_empty(llm):
     input_data = {}
     llm = llm or FakeLLM(name="openai")

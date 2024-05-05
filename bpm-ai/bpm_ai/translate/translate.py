@@ -31,8 +31,8 @@ async def translate_llm(
     else:
         input_items = await ocr_documents(input_items, ocr)
     input_items = await transcribe_audio(input_items, asr)
-    input_data = prepare_text_blobs(input_data)
-    assert_all_files_processed(input_data)
+    input_items = prepare_text_blobs(input_items)
+    assert_all_files_processed(input_items)
 
     prompt = Prompt.from_file(
         "translate",
