@@ -25,8 +25,5 @@ Remember to respect the text properties specified above and write in {{lang}}!
 Remember to *NOT* use template variables in your generated text parts and to mind the position, spacing, and punctuation of template variable texts!
 
 *IMPORTANT*: Generate text for *all* template variables, do not forget anything!
-{% if False %}
-Do *NOT* use any character escaping!
-{% endif %}
 
 Make sure to get this right, this is very important for my career!

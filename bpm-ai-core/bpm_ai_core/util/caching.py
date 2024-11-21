@@ -11,7 +11,7 @@ from bpm_ai_core.llm.common.blob import Blob
 logger = logging.getLogger(__name__)
 
 
-_cache = Cache(directory=os.path.join(os.path.expanduser("~"), ".cache", "bpm-ai", "predictions"))
+_cache = Cache(directory=os.path.join(os.getenv("BPM_AI_CACHE_DIR", os.path.join(os.path.expanduser("~"), ".cache", "bpm-ai")), "predictions"))
 
 
 def calculate_cache_key(data: tuple) -> str:

@@ -5,7 +5,8 @@ from bpm_ai_core.util.linguistics import stopwords, replace_diacritics
 
 def desc_to_var_name(desc: str):
     desc = desc.lower()
-    v = remove_stop_words(desc, separator='_')
+    #v = remove_stop_words(desc, separator='_')
+    v = desc.replace(" ", "_")
     v = replace_diacritics(v)
     return re.sub(r'[^a-zA-Z0-9_-]+', '', v)
 

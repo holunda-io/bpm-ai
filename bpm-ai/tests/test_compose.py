@@ -14,7 +14,7 @@ async def test_compose(llm):
             AssistantMessage(
                 content={
                     "greet_customer": "Hey Max",
-                    "thank_customer_mail": "Thanks for your mail",
+                    "thank_customer_for_mail": "Thanks for your mail",
                     "answer_question_based_provided_answer": "Your order was shipped today!"
                 }
             )
