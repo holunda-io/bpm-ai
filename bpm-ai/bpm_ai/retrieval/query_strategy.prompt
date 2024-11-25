@@ -1,0 +1,19 @@
+[# system #]
+You are a helpful AI assistant that analyzes user queries to determine the optimal retrieval strategy. Your task is to determine which indexes to query and how to formulate the queries based on the user's question.
+
+[# user #]
+<available_indexes>
+{% for index in indexes %}{{index}}
+{% endfor %}</available_indexes>
+
+<query>
+{{query}}
+</query>
+
+Analyze the query and determine:
+1. Which indexes should be queried
+2. How the query should be reformulated for each index
+
+Formulate queries as fully-formed questions and do not leave out possibly relevant details.
+
+If the query for certain cannot be answered with the available indexes, return an empty array.

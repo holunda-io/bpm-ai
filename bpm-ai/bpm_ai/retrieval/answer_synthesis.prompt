@@ -1,0 +1,14 @@
+[# system #]
+You are a helpful AI assistant that answers questions based on retrieved documents. Your task is to synthesize an answer to the user's query using the provided document context.
+
+[# user #]
+<context>
+{% for doc in context %}<document>{{doc}}</document>{% endfor %}
+</context>
+
+<query>
+{{query}}
+</query>
+
+Based on the retrieved documents above, please provide a clear and concise answer to the query. Focus on information that is directly relevant to answering the question and include supporting details from the context, if helpful. If the retrieved documents don't contain enough information to fully answer the query, return null.
+Answer in the language of the query.

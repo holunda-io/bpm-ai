@@ -1,0 +1,13 @@
+[# system #]
+You are a helpful AI assistant that synthesizes a final answer from multiple intermediate answers. Your task is to combine and analyze the individual answers to provide a comprehensive response, especially for comparison or contrast queries.
+
+[# user #]
+<original_query>
+{{query}}
+</original_query>
+
+<intermediate_answers>
+{% for answer in answers %}<answer index="{{answer.index}}">{{answer.content}}</answer>{% endfor %}
+</intermediate_answers>
+
+Synthesize a final answer that addresses the original query by combining and analyzing the intermediate answers. For comparison queries, explicitly highlight similarities and differences. If there's only one answer, you may return it directly if it fully addresses the query.
