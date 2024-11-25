@@ -39,22 +39,24 @@ async def _synthesize_answer(llm: LLM, query: str, retrieved_docs: dict) -> str:
     return message.content
 
 
-async def _determine_query_strategy(llm: LLM, query: str, available_indexes: List[str]) -> List[dict]:
+async def _determine_query_strategy(llm: LLM, query: str, input_data: dict, available_indexes: List[str]) -> List[dict]:
     """
     Determine which indexes to query and how to formulate the queries.
     
     Args:
         llm: LLM instance to use for strategy determination
         query: Original user query
+        input_data: Optional user provided context information
         available_indexes: List of available index names
-        
+
     Returns:
         List of dicts with index and query to execute
     """
     prompt = Prompt.from_file(
         "query_strategy",
         indexes=available_indexes,
-        query=query
+        query=query,
+        input_data=input_data
     )
     
     message = await llm.generate_message(prompt, output_schema={
@@ -77,13 +79,14 @@ async def _determine_query_strategy(llm: LLM, query: str, available_indexes: Lis
     return message.content["index_queries"]
 
 
-async def _synthesize_final_answer(llm: LLM, query: str, intermediate_answers: List[dict]) -> str:
+async def _synthesize_final_answer(llm: LLM, query: str, input_data: dict, intermediate_answers: List[dict]) -> str:
     """
     Synthesize a final answer from multiple intermediate answers.
     
     Args:
         llm: LLM instance to use for final synthesis
         query: Original user query
+        input_data: Optional user provided context information
         intermediate_answers: List of dicts with index and content keys
         
     Returns:
@@ -92,6 +95,7 @@ async def _synthesize_final_answer(llm: LLM, query: str, intermediate_answers: L
     prompt = Prompt.from_file(
         "final_synthesis",
         query=query,
+        input_data=input_data,
         answers=intermediate_answers
     )
     
@@ -102,37 +106,38 @@ async def _synthesize_final_answer(llm: LLM, query: str, intermediate_answers: L
 @trace("bpm-ai-retrieval", ["llm"])
 async def retrieve_llm(
     llm: LLM,
-    input_data: dict[str, List[str]],
+    index: dict[str, List[str]],
     query: str,
     retrieval: DocumentRetrieval,
     crawler: WebCrawler,
+    input_data: Optional[dict] = None
 ) -> dict:
     """
     Retrieve relevant documents and synthesize an answer using an LLM.
     
     Args:
         llm: LLM instance to use for answer synthesis
-        input_data: Dict mapping index names to lists of URLs/file paths
+        index: Dict mapping index names to lists of URLs/file paths
         query: User's question to answer
         retrieval: DocumentRetrieval instance for indexing/searching
         crawler: WebCrawler instance for processing URLs
+        input_data: Optional user provided context information
         
     Returns:
         Dict containing the synthesized answer
     """
-    if not input_data:
-        raise MissingParameterError("input_data is required")
+    if not index:
+        raise MissingParameterError("index is required")
     if not query:
         raise MissingParameterError("query is required")
 
     # Process each index
-    for index_name, urls_or_paths in input_data.items():
+    for index_name, urls_or_paths in index.items():
         # Skip if index already exists
         if not await retrieval.has_index(index_name):
             await _create_index(index_name, retrieval, crawler, urls_or_paths)
 
-    # Determine query strategy
-    queries = await _determine_query_strategy(llm, query, list(input_data.keys()))
+    queries = await _determine_query_strategy(llm, query, input_data, list(index.keys()))
     
     # Execute each query individually and collect answers
     intermediate_answers = []
@@ -167,7 +172,7 @@ async def retrieve_llm(
         return {"answer": intermediate_answers[0]["content"]}
     
     # Otherwise synthesize final answer from intermediate answers
-    final_answer = await _synthesize_final_answer(llm, query, intermediate_answers)
+    final_answer = await _synthesize_final_answer(llm, query, input_data, intermediate_answers)
     return {"answer": final_answer}
 
 

@@ -6,8 +6,14 @@ You are a helpful AI assistant that synthesizes a final answer from multiple int
 {{query}}
 </original_query>
 
+{% if input_data %}
+<query_context>
+{{input_data | json}}
+</query_context>
+{% endif %}
+
 <intermediate_answers>
 {% for answer in answers %}<answer index="{{answer.index}}">{{answer.content}}</answer>{% endfor %}
 </intermediate_answers>
 
-Synthesize a final answer that addresses the original query by combining and analyzing the intermediate answers. For comparison queries, explicitly highlight similarities and differences. If there's only one answer, you may return it directly if it fully addresses the query.
+Synthesize a final answer that addresses the original query by combining and analyzing the intermediate answers. For comparison queries, explicitly highlight similarities and differences.{% if input_data %} Consider the provided query_context information when synthesizing your answer if it is relevant. It may be required to contextualize the query.{% endif %} If there's only one answer, you may return it directly if it fully addresses the query. Answer in the language of the query.
