@@ -14,6 +14,7 @@ from bpm_ai_core.llm.openai_chat._constants import DEFAULT_MODEL, DEFAULT_TEMPER
 from bpm_ai_core.llm.openai_chat.util import messages_to_openai_dicts, json_schema_to_openai_function
 from bpm_ai_core.tracing.tracing import Tracing
 from bpm_ai_core.util.caching import cachable
+from bpm_ai_core.util.file import ensure_url_ends_with
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +94,7 @@ class ChatOpenAI(LLM):
             seed=seed,
             max_retries=max_retries,
             client=get_openai_client(
-                endpoint=urljoin(endpoint, "/v1"),
+                endpoint=ensure_url_ends_with(endpoint, "/v1"),
                 api_key=os.environ.get(api_key_env_var, "dummy")
             )
         )

@@ -57,3 +57,12 @@ def _extract_extension(url_or_path):
 
 def is_file(s: str) -> bool:
     return s.startswith('http://') or s.startswith('https://') or os.path.exists(os.path.dirname(s))
+
+
+def ensure_url_ends_with(base_url: str, segment: str) -> str:
+  """
+  Ensures a URL string ends with a specific segment
+  """
+  normalized_url = base_url.rstrip('/')
+  segment = "/" + segment if not segment.startswith('/') else segment
+  return normalized_url if normalized_url.endswith(segment) else normalized_url + segment
