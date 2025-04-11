@@ -607,17 +607,20 @@ develop = true
 bpm-ai-core = {path = "../bpm-ai/bpm-ai-core", develop = true}
 byaldi = "^0.0.7"
 crawlee = {version = "^0.4.1", extras = ["playwright"]}
+einops = "^0.6.1"
 faster-whisper = "^1.0.3"
 gliner = "^0.1.6"
 langfuse = "^2.7.6"
 lingua-language-detector = "^2.0.2"
 llama-cpp-python = "^0.3.1"
+matplotlib = "^3.7.1"
 nltk = "^3.8.0"
 optimum = {version = "^1.18.0", extras = ["onnxruntime"]}
 py-cpuinfo = "^9.0.0"
 pytesseract = "^0.3.10"
 sacremoses = "^0.1.1"
 scipy = "1.10.1"
+seaborn = "^0.13.2"
 sentencepiece = "^0.2.0"
 transformers = "^4.39.3"
 
@@ -1488,6 +1491,17 @@ files = [
 [package.dependencies]
 runs = "*"
 xmod = "*"
+
+[[package]]
+name = "einops"
+version = "0.6.1"
+description = "A new flavour of deep learning operations"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "einops-0.6.1-py3-none-any.whl", hash = "sha256:99149e46cc808956b174932fe563d920db4d6e5dadb8c6ecdaa7483b7ef7cfc3"},
+    {file = "einops-0.6.1.tar.gz", hash = "sha256:f95f8d00f4ded90dbc4b19b6f98b177332614b0357dde66997f3ae5d474dc8c8"},
+]
 
 [[package]]
 name = "eval-type-backport"
@@ -3598,7 +3612,7 @@ files = [
 [package.dependencies]
 coloredlogs = "*"
 datasets = [
-    {version = "*", optional = true, markers = "extra != \"onnxruntime\""},
+    {version = "*"},
     {version = ">=1.2.1", optional = true, markers = "extra == \"onnxruntime\""},
 ]
 evaluate = {version = "*", optional = true, markers = "extra == \"onnxruntime\""}
@@ -3611,7 +3625,7 @@ protobuf = {version = ">=3.20.1", optional = true, markers = "extra == \"onnxrun
 sympy = "*"
 torch = ">=1.11"
 transformers = [
-    {version = ">=4.29", optional = true, markers = "extra != \"onnxruntime\""},
+    {version = ">=4.29"},
     {version = ">=4.29,<4.47.0", optional = true, markers = "extra == \"onnxruntime\""},
 ]
 
@@ -5080,6 +5094,27 @@ doc = ["matplotlib (>2)", "numpydoc", "pydata-sphinx-theme (==0.9.0)", "sphinx (
 test = ["asv", "gmpy2", "mpmath", "pooch", "pytest", "pytest-cov", "pytest-timeout", "pytest-xdist", "scikit-umfpack", "threadpoolctl"]
 
 [[package]]
+name = "seaborn"
+version = "0.13.2"
+description = "Statistical data visualization"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "seaborn-0.13.2-py3-none-any.whl", hash = "sha256:636f8336facf092165e27924f223d3c62ca560b1f2bb5dff7ab7fad265361987"},
+    {file = "seaborn-0.13.2.tar.gz", hash = "sha256:93e60a40988f4d65e9f4885df477e2fdaff6b73a9ded434c1ab356dd57eefff7"},
+]
+
+[package.dependencies]
+matplotlib = ">=3.4,<3.6.1 || >3.6.1"
+numpy = ">=1.20,<1.24.0 || >1.24.0"
+pandas = ">=1.2"
+
+[package.extras]
+dev = ["flake8", "flit", "mypy", "pandas-stubs", "pre-commit", "pytest", "pytest-cov", "pytest-xdist"]
+docs = ["ipykernel", "nbconvert", "numpydoc", "pydata_sphinx_theme (==0.10.0rc2)", "pyyaml", "sphinx (<6.0.0)", "sphinx-copybutton", "sphinx-design", "sphinx-issues"]
+stats = ["scipy (>=1.7)", "statsmodels (>=0.12)"]
+
+[[package]]
 name = "segtok"
 version = "1.5.11"
 description = "sentence segmentation and word tokenization tools"
@@ -6198,4 +6233,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.11"
-content-hash = "2071dae6d7d12c9915422f12661e3187749425d00113cc760c522658c9b9e630"
+content-hash = "a1ff16241329ad2a721a8e8c8db019f3c8b439fa0aafeb583c96982dadca712f"
