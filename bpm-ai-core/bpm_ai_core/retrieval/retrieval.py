@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
+from bpm_ai_core.tracing.decorators import span
 
 from pydantic import BaseModel
 
@@ -86,6 +87,7 @@ class DocumentRetrieval(ABC):
             metadata=metadata
         )
 
+    @span(name="retrieval")
     async def query(
         self,
         query: str,

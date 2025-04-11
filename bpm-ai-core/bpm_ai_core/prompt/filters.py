@@ -9,7 +9,7 @@ def dict_to_markdown(d: dict) -> str:
 
 
 def dict_to_json(d: dict) -> str:
-    return json.dumps(d, indent=2)
+    return json.dumps(d, indent=2, ensure_ascii=False)
 
 
 def dict_to_xml(d: dict, root: str = "root") -> str:

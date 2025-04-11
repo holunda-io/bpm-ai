@@ -1,4 +1,5 @@
 import pytest
+from bpm_ai_core.llm.common.llm import LLM
 from bpm_ai_core.llm.common.message import AssistantMessage
 from bpm_ai_core.testing.fake_llm import FakeLLM
 from bpm_ai_core.retrieval.retrieval import DocumentRetrieval, RetrievalResult, DocumentMatch
@@ -7,7 +8,7 @@ from bpm_ai_inference.retrieval import ByaldiDocumentRetrieval
 from bpm_ai_inference.web_crawling.playwright_crawler import PlaywrightWebCrawler
 
 from bpm_ai.common.errors import MissingParameterError
-from bpm_ai.retrieval.retrieval import retrieve_llm
+from bpm_ai.retrieval.retrieval import retrieve_llm, _determine_query_strategy
 
 
 class FakeRetrieval(DocumentRetrieval):
@@ -52,22 +53,44 @@ async def test_retrieve(llm):
     
     result = await retrieve_llm(
         llm=llm,
-        input_data={
+        index={
             #"strom": ["/Users/bennet/Documents/Dokumentenscans/Rechnungen/Vattenfall-strom-2022-23.pdf"],
             "elmshorn": ["https://de.wikipedia.org/wiki/Elmshorn"],
             "gettorf": ["https://de.wikipedia.org/wiki/Gettorf"],
             "eckernfoerde": ["https://de.wikipedia.org/wiki/Eckernförde"],
         },
-        query="Welcher Bürgermeister hat seine Wahl deutlicher gewonenn, der von Elmshorn oder Eckernförde?",
+        input_data={
+            "cities": ["Eckernförde"]
+        },
+        output_schema={
+            "population": {
+                "type": "number",
+                "description": "The population of the city"
+            }
+        },
+        query="Wie viele Einwohner haben die Städte???",
         retrieval=ByaldiDocumentRetrieval(),
         crawler=PlaywrightWebCrawler()
     )
 
-    if isinstance(llm, FakeLLM):
-        # Verify LLM received the query
-        llm.assert_last_request_contains("What's in the image?")
+    #if isinstance(llm, FakeLLM):
+    #    # Verify LLM received the query
+    #    llm.assert_last_request_contains("What's in the image?")
 
     #assert "image" in result["answer"]
+
+    print()
+    print(result["answer"])
+    print()
+
+async def test_query_rewrite(llm):
+    result = await _determine_query_strategy(
+        llm,
+        "Wo regnet es mehr: Hannover oder Hamburg?",
+        {},
+        ["hannover", "hamburg", "kiel"]
+    )
+    print(result)
 
 
 async def test_retrieve_empty_input(llm):

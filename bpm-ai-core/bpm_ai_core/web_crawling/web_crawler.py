@@ -39,7 +39,7 @@ class WebCrawler(ABC):
         """
         pass
 
-    @cached(exclude=["screenshot_dir"])
+    #@cached(exclude=["screenshot_dir"])
     @span(name="web-crawler")
     async def crawl(
             self,

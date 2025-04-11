@@ -20,7 +20,7 @@ def local_llm():
 
 @pytest.fixture
 def llm():
-    return None #ChatLlamaCpp(model="NousResearch/Hermes-2-Pro-Llama-3-8B-GGUF")
+    return ChatOpenAI(model="gpt-4o") #ChatLlamaCpp(model="NousResearch/Hermes-2-Pro-Llama-3-8B-GGUF")
 
 
 @pytest.fixture(autouse=True, scope="module")

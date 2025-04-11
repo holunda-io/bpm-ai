@@ -1,3 +1,4 @@
+import logging
 import os
 import tempfile
 from pathlib import Path
@@ -15,6 +16,8 @@ from bpm_ai_core.util.file import is_supported_img_file
 from bpm_ai.common.errors import MissingParameterError
 from bpm_ai.common.multimodal import prepare_images_for_llm_prompt
 from bpm_ai.retrieval.util import add_header_to_image
+
+logger = logging.getLogger(__name__)
 
 
 async def _synthesize_answer(llm: LLM, query: str, retrieved_docs: dict) -> str:
@@ -79,7 +82,7 @@ async def _determine_query_strategy(llm: LLM, query: str, input_data: dict, avai
     return message.content["index_queries"]
 
 
-async def _synthesize_final_answer(llm: LLM, query: str, input_data: dict, intermediate_answers: List[dict]) -> str:
+async def _synthesize_final_answer(llm: LLM, query: str, input_data: dict, intermediate_answers: List[dict], output_schema: Optional[dict] = None) -> str | dict:
     """
     Synthesize a final answer from multiple intermediate answers.
     
@@ -88,19 +91,25 @@ async def _synthesize_final_answer(llm: LLM, query: str, input_data: dict, inter
         query: Original user query
         input_data: Optional user provided context information
         intermediate_answers: List of dicts with index and content keys
-        
+        output_schema: Optional schema for structured JSON output
+
     Returns:
-        Final synthesized answer
+        Final synthesized answer as string or dict if json_output is True
     """
     prompt = Prompt.from_file(
         "final_synthesis",
         query=query,
         input_data=input_data,
-        answers=intermediate_answers
+        answers=intermediate_answers,
+        json_output=output_schema is not None
     )
     
-    message = await llm.generate_message(prompt)
-    return message.content
+    if output_schema:
+        message = await llm.generate_message(prompt, output_schema=output_schema)
+        return message.content
+    else:
+        message = await llm.generate_message(prompt)
+        return message.content
 
 
 @trace("bpm-ai-retrieval", ["llm"])
@@ -110,7 +119,8 @@ async def retrieve_llm(
     query: str,
     retrieval: DocumentRetrieval,
     crawler: WebCrawler,
-    input_data: Optional[dict] = None
+    input_data: Optional[dict] = None,
+    output_schema: Optional[dict] = None
 ) -> dict:
     """
     Retrieve relevant documents and synthesize an answer using an LLM.
@@ -122,7 +132,8 @@ async def retrieve_llm(
         retrieval: DocumentRetrieval instance for indexing/searching
         crawler: WebCrawler instance for processing URLs
         input_data: Optional user provided context information
-        
+        output_schema: Optional schema for structured JSON output
+
     Returns:
         Dict containing the synthesized answer
     """
@@ -148,6 +159,8 @@ async def retrieve_llm(
             index_name=query_info["index"],
             top_k=2
         )
+
+        logger.info(results)
         
         # Prepare retrieved documents for LLM
         retrieved_docs = {
@@ -168,11 +181,11 @@ async def retrieve_llm(
         return {"answer": None}
 
     # If only one answer, return it directly
-    if len(intermediate_answers) == 1:
+    if len(intermediate_answers) == 1 and not output_schema:
         return {"answer": intermediate_answers[0]["content"]}
     
     # Otherwise synthesize final answer from intermediate answers
-    final_answer = await _synthesize_final_answer(llm, query, input_data, intermediate_answers)
+    final_answer = await _synthesize_final_answer(llm, query, input_data, intermediate_answers, output_schema)
     return {"answer": final_answer}
 
 
