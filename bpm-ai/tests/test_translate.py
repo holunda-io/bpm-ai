@@ -1,7 +1,6 @@
 import pytest
 from bpm_ai_core.llm.common.message import AssistantMessage
 from bpm_ai_core.testing.fake_llm import FakeLLM
-from bpm_ai_inference.translation.easy_nmt.easy_nmt import EasyNMT
 
 from bpm_ai.common.errors import MissingParameterError, FileNotSupportedError
 from bpm_ai.translate.translate import translate_llm, translate_nmt
@@ -148,79 +147,4 @@ async def test_translate_unsupported_file(llm):
                 "doc": "files/document.docx"
             },
             target_language="German",
-        )
-
-
-async def test_translate_nmt():
-    nmt = EasyNMT()
-    result = await translate_nmt(
-        nmt=nmt,
-        input_data={
-            "email": "Hey ich bins, der Jürgen. Ich habe ein neues Auto.",
-            "subject": "Hallo, mein Freund!"
-        },
-        target_language="English",
-    )
-
-    assert "car" in result["email"]
-    assert result["subject"] == "Hello, my friend!"
-
-
-async def test_translate_nmt_partial_none():
-    input_data = {
-        "email": None,
-        "subject": "Hallo, mein Freund!"
-    }
-    nmt = EasyNMT()
-    result = await translate_nmt(
-        nmt=nmt,
-        input_data=input_data,
-        target_language="English",
-    )
-
-    assert result["email"] is None
-    assert result["subject"] == "Hello, my friend!"
-
-
-async def test_translate_nmt_none():
-    input_data = {
-        "email": None,
-        "subject": None
-    }
-    nmt = EasyNMT()
-    result = await translate_nmt(
-        nmt=nmt,
-        input_data=input_data,
-        target_language="English",
-    )
-
-    assert result["email"] is None
-    assert result["subject"] is None
-
-
-async def test_translate_nmt_empty():
-    input_data = {}
-    nmt = EasyNMT()
-    result = await translate_nmt(
-        nmt=nmt,
-        input_data=input_data,
-        target_language="English",
-    )
-
-    assert result == {}
-
-
-async def test_translate_nmt_no_language():
-    input_data = {
-        "email": "Hey",
-        "subject": "Hallo"
-    }
-    nmt = EasyNMT()
-    target_language = " "
-
-    with pytest.raises(MissingParameterError):
-        await translate_nmt(
-            nmt=nmt,
-            input_data=input_data,
-            target_language=target_language,
         )

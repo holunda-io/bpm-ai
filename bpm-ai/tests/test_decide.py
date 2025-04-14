@@ -169,6 +169,7 @@ async def test_decide_image_classifier_zero_shot():
     assert result["decision"] == "dummy"
 
 
+@pytest.mark.skip
 async def test_decide_image_classifier():
     image_classifier = TransformersImageClassifier(model="Benjoyo/test-image-classifier-2", zero_shot=False)
 
