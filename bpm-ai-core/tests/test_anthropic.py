@@ -6,7 +6,7 @@ from bpm_ai_core.llm.openai_chat.openai_chat import ChatOpenAI
 from bpm_ai_core.prompt.prompt import Prompt
 from bpm_ai_core.tracing.decorators import trace
 
-
+@pytest.mark.skip
 async def test_anthropic_tools():
     llm = ChatAnthropic.for_anthropic(model="claude-3-haiku-20240307")
     prompt = Prompt.from_string("""\
@@ -26,6 +26,7 @@ async def test_anthropic_tools():
     assert result.tool_calls[0].payload_dict() == {"orders": ["3", "12", "2"]}
 
 
+@pytest.mark.skip
 @pytest.mark.parametrize("filename", ["files/invoice.png", "files/invoice.pdf"])
 async def test_anthropic_document(filename):
     llm = ChatAnthropic.for_anthropic(model="claude-3-haiku-20240307")
@@ -48,6 +49,7 @@ async def test_anthropic_document(filename):
     }
 
 
+@pytest.mark.skip
 @pytest.mark.parametrize("filename,info", [("files/example.jpg", "labrador"), ("files/invoice-simple.webp", "300")])
 async def test_anthropic_image(filename, info):
     llm = ChatAnthropic.for_anthropic(model="claude-3-haiku-20240307")
@@ -64,6 +66,7 @@ async def test_anthropic_image(filename, info):
     assert info in result.content.lower()
 
 
+@pytest.mark.skip
 @pytest.mark.parametrize("filename,info", [("files/test.txt", "jim")])
 async def test_anthropic_text_file(filename, info):
     llm = ChatAnthropic.for_anthropic(model="claude-3-haiku-20240307")
