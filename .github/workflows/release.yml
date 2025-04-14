@@ -12,12 +12,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Publish core python poetry package
-        uses: JRubics/poetry-publish@v1.17
+        uses: JRubics/poetry-publish@v2.1
         with:
           python_version: "3.11"
           pypi_token: ${{ secrets.PYPI_TOKEN }}
           # Install project without developer requirements.
-          ignore_dev_requirements: "yes"
+          poetry_install_options: "--without dev"
           package_directory: "bpm-ai-core"
 
   publish:
@@ -26,10 +26,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Publish python poetry package
-        uses: JRubics/poetry-publish@v1.17
+        uses: JRubics/poetry-publish@v2.1
         with:
           python_version: "3.11"
           pypi_token: ${{ secrets.PYPI_TOKEN }}
           # Install project without developer requirements.
-          ignore_dev_requirements: "yes"
+          poetry_install_options: "--without dev"
           package_directory: "bpm-ai"
