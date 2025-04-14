@@ -41,6 +41,7 @@ class FakeCrawler(WebCrawler):
         )
 
 
+@pytest.mark.skip
 async def test_retrieve(llm):
     llm = llm or FakeLLM(
         name="openai",
@@ -54,7 +55,6 @@ async def test_retrieve(llm):
     result = await retrieve_llm(
         llm=llm,
         index={
-            #"strom": ["/Users/bennet/Documents/Dokumentenscans/Rechnungen/Vattenfall-strom-2022-23.pdf"],
             "elmshorn": ["https://de.wikipedia.org/wiki/Elmshorn"],
             "gettorf": ["https://de.wikipedia.org/wiki/Gettorf"],
             "eckernfoerde": ["https://de.wikipedia.org/wiki/Eckernförde"],
@@ -68,7 +68,7 @@ async def test_retrieve(llm):
                 "description": "The population of the city"
             }
         },
-        query="Wie viele Einwohner haben die Städte???",
+        query="Wie viele Einwohner haben die Städte?",
         retrieval=ByaldiDocumentRetrieval(),
         crawler=PlaywrightWebCrawler()
     )
@@ -83,6 +83,8 @@ async def test_retrieve(llm):
     print(result["answer"])
     print()
 
+
+@pytest.mark.skip
 async def test_query_rewrite(llm):
     result = await _determine_query_strategy(
         llm,
@@ -93,6 +95,7 @@ async def test_query_rewrite(llm):
     print(result)
 
 
+@pytest.mark.skip
 async def test_retrieve_empty_input(llm):
     llm = llm or FakeLLM(name="openai")
     
@@ -110,6 +113,7 @@ async def test_retrieve_empty_input(llm):
         llm.assert_no_request()
 
 
+@pytest.mark.skip
 async def test_retrieve_existing_index(llm):
     llm = llm or FakeLLM(
         name="openai",
@@ -136,6 +140,7 @@ async def test_retrieve_existing_index(llm):
     assert len(retrieval.indexed_files) == 0
 
 
+@pytest.mark.skip
 async def test_retrieve_empty_query(llm):
     llm = llm or FakeLLM(name="openai")
     

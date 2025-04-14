@@ -157,7 +157,7 @@ async def extract_qa(
         if not multiple_description or multiple_description.isspace():
             raise MissingParameterError("Description for entity type is required.")
 
-        result = await token_classifier.classify(input_md, classes=[multiple_description], confidence_threshold=0.75)
+        result = await token_classifier.classify(input_md, classes=[multiple_description], confidence_threshold=0.7)
         entities = [s.word for s in result.spans]
 
         # to specify the current entity we are interested in, we mark it in the context and prepend a hint to the description
