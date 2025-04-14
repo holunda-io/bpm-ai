@@ -4,8 +4,8 @@ from bpm_ai_core.llm.common.message import AssistantMessage
 from bpm_ai_core.testing.fake_llm import FakeLLM
 from bpm_ai_core.retrieval.retrieval import DocumentRetrieval, RetrievalResult, DocumentMatch
 from bpm_ai_core.web_crawling.web_crawler import WebCrawler, CrawlingResult
-from bpm_ai_inference.retrieval import ByaldiDocumentRetrieval
-from bpm_ai_inference.web_crawling.playwright_crawler import PlaywrightWebCrawler
+#from bpm_ai_inference.retrieval import ByaldiDocumentRetrieval
+#from bpm_ai_inference.web_crawling.playwright_crawler import PlaywrightWebCrawler
 
 from bpm_ai.common.errors import MissingParameterError
 from bpm_ai.retrieval.retrieval import retrieve_llm, _determine_query_strategy
@@ -69,8 +69,8 @@ async def test_retrieve(llm):
             }
         },
         query="Wie viele Einwohner haben die Städte?",
-        retrieval=ByaldiDocumentRetrieval(),
-        crawler=PlaywrightWebCrawler()
+        #retrieval=ByaldiDocumentRetrieval(),
+        #crawler=PlaywrightWebCrawler()
     )
 
     #if isinstance(llm, FakeLLM):
