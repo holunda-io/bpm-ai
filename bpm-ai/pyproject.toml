@@ -10,7 +10,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "~3.11"
-bpm-ai-core = "2.7.0"
+bpm-ai-core = "2.7.1"
 openai = "^1.55.0"
 anthropic = "^0.39.0"
 langfuse = "^2.27.2"
@@ -22,7 +22,7 @@ azure-ai-documentintelligence = "^1.0.0b2"
 av = "^11.0.0"
 
 [tool.poetry.group.dev.dependencies]
-bpm-ai-inference = {path = "../../bpm-ai-inference", develop = true}#"0.3.3"
+bpm-ai-inference = "0.3.3"
 ctranslate2 = "4.1.0"
 
 
